@@ -91,32 +91,6 @@ cd frontend
 npx serve .
 ```
 
-## 🎥 YouTube Demo Features
-
-The dashboard is designed specifically for YouTube demonstrations:
-
-### Balance Tracking
-- **Start Balance**: Fixed at $1,000 for consistent demos
-- **Current Balance**: Real-time updates as trades are executed
-- **P&L Display**: Clear profit/loss with color coding (green/red)
-- **Percentage Returns**: Easy-to-understand performance metrics
-
-### Trading Controls
-- **Start/Stop Bot**: Toggle automated trading
-- **Simulate Trade**: Generate demo trades for presentations
-- **Reset Demo**: Reset all data to initial state
-
-### Keywords AI Integration
-- **Real-time Logging**: All LLM requests automatically logged
-- **Request Counter**: Shows total LLM interactions
-- **Demo Logging**: Send test requests to Keywords AI
-
-### Visual Features
-- **Modern UI**: Clean, professional design perfect for screen recording
-- **Real-time Updates**: Dashboard refreshes every 3 seconds
-- **Status Indicators**: Clear visual feedback for bot status
-- **Trade History**: Shows recent trading activity with details
-
 ## 🔧 API Endpoints
 
 ### Strategy Endpoints (`/v1/strategy/`)
@@ -133,16 +107,6 @@ The dashboard is designed specifically for YouTube demonstrations:
 - `GET /activity` - Get LLM activity and Keywords AI logs
 - `GET /config` - Get LLM configuration
 - `POST /log-demo-request` - Send demo log to Keywords AI
-
-## 🎯 Perfect for YouTube Demos
-
-This setup is ideal for creating YouTube content about:
-
-1. **AI Trading Bots**: Show how GPT-4o makes trading decisions
-2. **Keywords AI Logging**: Demonstrate LLM request monitoring
-3. **Crypto Trading**: Educational content about automated trading
-4. **Python Development**: Show how to build trading applications
-5. **API Integration**: Demonstrate multiple API integrations
 
 ## ⚙️ Configuration
 
@@ -178,7 +142,7 @@ This is a demonstration project. Feel free to fork and modify for your own use c
 
 ## ⚠️ Disclaimer
 
-This is educational software. Do not use with real money without thorough testing and understanding of the risks involved in cryptocurrency trading.
+Do not use with real money without thorough testing and understanding of the risks involved in cryptocurrency trading.
 
 ## 📝 License
 
