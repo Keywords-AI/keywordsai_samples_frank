@@ -1,0 +1,16 @@
+# Coinbase Sandbox Configuration for Official SDK
+# Uses Advanced Trade API sandbox endpoint
+# Environment variables to set:
+# - COINBASE_SANDBOX_API_KEY
+# - COINBASE_SANDBOX_API_SECRET
+
+api_key: ${COINBASE_SANDBOX_API_KEY}
+api_secret: ${COINBASE_SANDBOX_API_SECRET}
+# No passphrase needed for Advanced Trade API
+endpoint: https://api.sandbox.coinbase.com
+
+# Configuration notes:
+# 1. This uses the Advanced Trade API sandbox endpoint
+# 2. No passphrase required (Advanced Trade API)
+# 3. Safe testing environment with fake money
+# 4. Your credentials should work here! 

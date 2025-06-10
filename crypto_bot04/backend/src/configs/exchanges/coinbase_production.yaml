@@ -1,0 +1,32 @@
+# Coinbase Production Configuration
+# For Coinbase Advanced Trade API (no passphrase required)
+# Uses environment variables for secure credential management
+
+# Environment variables to set:
+# - COINBASE_PRODUCTION_API_KEY
+# - COINBASE_PRODUCTION_API_SECRET
+
+api_key: ${COINBASE_PRODUCTION_API_KEY}
+api_secret: ${COINBASE_PRODUCTION_API_SECRET}
+# No passphrase needed for Advanced Trade API
+endpoint: https://api.coinbase.com
+
+# Safety notes:
+# 1. This uses PRODUCTION environment - real money transactions!
+# 2. Advanced Trade API doesn't support sandbox mode
+# 3. Use small amounts for testing
+# 4. Only api_key and api_secret are required (no passphrase)
+# 5. The exchange wrapper will automatically use Advanced Trade API
+
+# Configuration notes:
+# 1. For Coinbase Pro (legacy): api_key, api_secret, and passphrase are required
+# 2. For Coinbase Advanced Trade: only api_key and api_secret are required
+# 3. Production endpoint: https://api.exchange.coinbase.com
+# 4. Sandbox endpoint: https://api-public.sandbox.exchange.coinbase.com
+# 5. IMPORTANT: Make sure to use production API credentials for this configuration
+# 6. Store sensitive credentials securely (consider environment variables)
+
+# Example environment variable usage:
+# api_key: ${COINBASE_API_KEY}
+# api_secret: ${COINBASE_API_SECRET}
+# passphrase: ${COINBASE_PASSPHRASE} 

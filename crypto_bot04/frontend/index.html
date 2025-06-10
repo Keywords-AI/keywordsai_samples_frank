@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Crypto Portfolio Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            color: white;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            font-weight: 300;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .dashboard {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .card {
+            background: white;
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .card h3 {
+            font-size: 1.3rem;
+            margin-bottom: 20px;
+            color: #4a5568;
+            border-bottom: 2px solid #e2e8f0;
+            padding-bottom: 10px;
+        }
+
+        .total-section {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .total-label {
+            font-size: 1rem;
+            color: #718096;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 5px;
+        }
+
+        .total-amount {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: #2d3748;
+            margin: 5px 0;
+        }
+
+        .pnl-display {
+            margin-top: 15px;
+            padding: 12px;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            text-align: center;
+        }
+
+        .positive {
+            color: #38a169;
+            background: #f0fff4;
+        }
+
+        .negative {
+            color: #e53e3e;
+            background: #fff5f5;
+        }
+
+        .neutral {
+            color: #718096;
+            background: #f7fafc;
+        }
+
+        .asset-list {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .asset-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px;
+            background: #f8fafc;
+            border-radius: 8px;
+            border-left: 4px solid #4299e1;
+        }
+
+        .asset-info {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .asset-symbol {
+            font-weight: 600;
+            font-size: 1.1rem;
+            color: #2d3748;
+        }
+
+        .asset-amount {
+            font-size: 0.9rem;
+            color: #718096;
+        }
+
+        .asset-values {
+            text-align: right;
+        }
+
+        .asset-price {
+            font-weight: 600;
+            color: #4299e1;
+            font-size: 0.9rem;
+        }
+
+        .asset-value {
+            font-weight: bold;
+            font-size: 1.1rem;
+            color: #2d3748;
+        }
+
+        .controls {
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            background: linear-gradient(135deg, #4299e1 0%, #3182ce 100%);
+            color: white;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+        }
+
+        .last-update {
+            text-align: center;
+            margin-top: 15px;
+            font-size: 0.9rem;
+            color: #718096;
+        }
+
+        .error {
+            color: #e53e3e;
+            background: #fff5f5;
+            padding: 12px;
+            border-radius: 8px;
+            margin: 10px 0;
+            border-left: 4px solid #e53e3e;
+        }
+
+        .success {
+            color: #38a169;
+            background: #f0fff4;
+            padding: 12px;
+            border-radius: 8px;
+            margin: 10px 0;
+            border-left: 4px solid #38a169;
+        }
+
+        .loading {
+            opacity: 0.6;
+            pointer-events: none;
+        }
+
+        .crypto-colors {
+            border-left-color: #f7931a !important; /* Bitcoin orange */
+        }
+
+        .crypto-colors.ETH {
+            border-left-color: #627eea !important; /* Ethereum blue */
+        }
+
+        .crypto-colors.USD {
+            border-left-color: #48bb78 !important; /* Green for USD */
+        }
+
+                 .crypto-colors.USDT {
+             border-left-color: #26a69a !important; /* Teal for USDT */
+         }
+
+         .crypto-colors.USDC {
+             border-left-color: #2775ca !important; /* Blue for USDC */
+         }
+
+        .crypto-colors.USDC {
+            border-left-color: #2775ca !important; /* Blue for USDC */
+        }
+
+        @media (max-width: 768px) {
+            .dashboard {
+                grid-template-columns: 1fr;
+                gap: 15px;
+            }
+            
+            .total-amount {
+                font-size: 2rem;
+            }
+            
+            .asset-item {
+                padding: 12px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>💰 Crypto Portfolio Sandbox</h1>
+            <p>Real-time portfolio tracking with live crypto prices</p>
+        </div>
+
+        <div class="dashboard">
+            <!-- Portfolio Overview -->
+            <div class="card">
+                <h3>📊 Portfolio Overview</h3>
+                
+                <div class="total-section">
+                    <div class="total-label">Start Total Value</div>
+                    <div class="total-amount" id="startTotal">$3,300.00</div>
+                </div>
+
+                <div class="total-section">
+                    <div class="total-label">Current Total Value</div>
+                    <div class="total-amount" id="currentTotal">$3,300.00</div>
+                </div>
+
+                <div class="pnl-display neutral" id="pnlDisplay">
+                    <div>P&L: <span id="pnlAmount">+$0.00</span> (<span id="pnlPercent">0.00%</span>)</div>
+                </div>
+
+                <div class="controls">
+                    <button class="btn" onclick="refreshPortfolio()">
+                        🔄 Refresh Prices
+                    </button>
+                </div>
+
+                <div class="last-update">
+                    Last Updated: <span id="lastUpdate">Never</span>
+                </div>
+            </div>
+
+            <!-- Asset Breakdown -->
+            <div class="card">
+                <h3>🪙 Asset Breakdown</h3>
+                <div class="asset-list" id="assetList">
+                    <!-- Assets will be populated here -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Messages -->
+        <div id="messages"></div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:8000/v1';
+        let updateInterval;
+
+        // Initialize the dashboard
+        async function init() {
+            await updatePortfolio();
+            
+            // Start auto-refresh every 30 seconds (don't spam the API)
+            updateInterval = setInterval(updatePortfolio, 30000);
+        }
+
+        // Update portfolio information
+        async function updatePortfolio() {
+            try {
+                const response = await fetch(`${API_BASE}/strategy/balance`);
+                const data = await response.json();
+                
+                if (data.start_total_value !== undefined) {
+                    // Update totals
+                    document.getElementById('startTotal').textContent = 
+                        `$${data.start_total_value.toLocaleString('en-US', {minimumFractionDigits: 2})}`;
+                    document.getElementById('currentTotal').textContent = 
+                        `$${data.current_total_value.toLocaleString('en-US', {minimumFractionDigits: 2})}`;
+                    
+                    // Update P&L
+                    const pnl = data.pnl;
+                    const pnlPercent = data.pnl_percentage;
+                    
+                    document.getElementById('pnlAmount').textContent = 
+                        `${pnl >= 0 ? '+' : ''}$${Math.abs(pnl).toFixed(2)}`;
+                    document.getElementById('pnlPercent').textContent = 
+                        `${pnlPercent >= 0 ? '+' : ''}${pnlPercent.toFixed(2)}%`;
+                    
+                    const pnlElement = document.getElementById('pnlDisplay');
+                    pnlElement.className = `pnl-display ${pnl > 0 ? 'positive' : pnl < 0 ? 'negative' : 'neutral'}`;
+                    
+                    // Update asset breakdown
+                    updateAssetBreakdown(data);
+                    
+                    // Update timestamp
+                    const updateTime = new Date(data.last_update).toLocaleTimeString();
+                    document.getElementById('lastUpdate').textContent = updateTime;
+                    
+                    // Remove loading state
+                    document.querySelector('.btn').disabled = false;
+                    document.querySelector('.btn').textContent = '🔄 Refresh Prices';
+                }
+            } catch (error) {
+                console.error('Failed to update portfolio:', error);
+                showMessage('Failed to connect to backend API', 'error');
+                
+                // Remove loading state
+                document.querySelector('.btn').disabled = false;
+                document.querySelector('.btn').textContent = '🔄 Refresh Prices';
+            }
+        }
+
+        // Update asset breakdown display
+        function updateAssetBreakdown(data) {
+            const assetList = document.getElementById('assetList');
+            assetList.innerHTML = '';
+            
+            // Get all assets from the portfolio dynamically
+            const assets = Object.keys(data.current_holdings || {});
+            
+            // Sort assets: USD currencies first, then crypto
+            assets.sort((a, b) => {
+                const isUsdA = ['USD', 'USDT', 'USDC'].includes(a);
+                const isUsdB = ['USD', 'USDT', 'USDC'].includes(b);
+                
+                if (isUsdA && !isUsdB) return -1;
+                if (!isUsdA && isUsdB) return 1;
+                return a.localeCompare(b);
+            });
+            
+            assets.forEach(asset => {
+                if (data.current_holdings[asset] && data.current_holdings[asset] > 0) {
+                    const assetDiv = document.createElement('div');
+                    assetDiv.className = `asset-item crypto-colors ${asset}`;
+                    
+                    const amount = data.current_holdings[asset];
+                    const price = data.current_prices[asset] || 1.0;
+                    const value = data.current_values[asset] || amount;
+                    
+                    assetDiv.innerHTML = `
+                        <div class="asset-info">
+                            <div class="asset-symbol">${asset}</div>
+                            <div class="asset-amount">${amount.toLocaleString()} ${asset}</div>
+                        </div>
+                        <div class="asset-values">
+                            <div class="asset-price">$${price.toLocaleString('en-US', {minimumFractionDigits: 2})}</div>
+                            <div class="asset-value">$${value.toLocaleString('en-US', {minimumFractionDigits: 2})}</div>
+                        </div>
+                    `;
+                    
+                    assetList.appendChild(assetDiv);
+                }
+            });
+        }
+
+        // Refresh portfolio data
+        async function refreshPortfolio() {
+            try {
+                // Show loading state
+                const btn = document.querySelector('.btn');
+                btn.disabled = true;
+                btn.textContent = '🔄 Refreshing...';
+                
+                const response = await fetch(`${API_BASE}/strategy/refresh`, {
+                    method: 'POST'
+                });
+                const data = await response.json();
+                
+                if (data.start_total_value !== undefined) {
+                    showMessage('Portfolio refreshed with latest prices!', 'success');
+                    
+                    // Update display with new data
+                    document.getElementById('startTotal').textContent = 
+                        `$${data.start_total_value.toLocaleString('en-US', {minimumFractionDigits: 2})}`;
+                    document.getElementById('currentTotal').textContent = 
+                        `$${data.current_total_value.toLocaleString('en-US', {minimumFractionDigits: 2})}`;
+                    
+                    const pnl = data.pnl;
+                    const pnlPercent = data.pnl_percentage;
+                    
+                    document.getElementById('pnlAmount').textContent = 
+                        `${pnl >= 0 ? '+' : ''}$${Math.abs(pnl).toFixed(2)}`;
+                    document.getElementById('pnlPercent').textContent = 
+                        `${pnlPercent >= 0 ? '+' : ''}${pnlPercent.toFixed(2)}%`;
+                    
+                    const pnlElement = document.getElementById('pnlDisplay');
+                    pnlElement.className = `pnl-display ${pnl > 0 ? 'positive' : pnl < 0 ? 'negative' : 'neutral'}`;
+                    
+                    updateAssetBreakdown(data);
+                    
+                    const updateTime = new Date(data.last_update).toLocaleTimeString();
+                    document.getElementById('lastUpdate').textContent = updateTime;
+                } else {
+                    showMessage('Failed to refresh portfolio', 'error');
+                }
+            } catch (error) {
+                showMessage('Error refreshing portfolio: ' + error.message, 'error');
+            } finally {
+                // Remove loading state
+                const btn = document.querySelector('.btn');
+                btn.disabled = false;
+                btn.textContent = '🔄 Refresh Prices';
+            }
+        }
+
+        // Show message to user
+        function showMessage(message, type) {
+            const messagesDiv = document.getElementById('messages');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = type;
+            messageDiv.textContent = message;
+            
+            messagesDiv.appendChild(messageDiv);
+            
+            // Remove message after 4 seconds
+            setTimeout(() => {
+                if (messageDiv.parentNode) {
+                    messagesDiv.removeChild(messageDiv);
+                }
+            }, 4000);
+        }
+
+        // Initialize when page loads
+        window.addEventListener('load', init);
+
+        // Cleanup on page unload
+        window.addEventListener('beforeunload', () => {
+            if (updateInterval) {
+                clearInterval(updateInterval);
+            }
+        });
+    </script>
+</body>
+</html> 

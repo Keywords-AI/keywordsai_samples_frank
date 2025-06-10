@@ -1,0 +1,37 @@
+# Main Exchange Configuration
+# This file controls which exchange and environment to use
+
+# Current active configuration
+active:
+  exchange: "coinbase"  # Options: "coinbase", "binance"
+  environment: "sandbox"  # Options: "sandbox", "production"
+
+# Exchange-specific settings
+exchanges:
+  coinbase:
+    sandbox:
+      config_file: "coinbase_sandbox.yaml"
+      description: "Coinbase sandbox for testing"
+    production:
+      config_file: "coinbase_production.yaml" 
+      description: "Coinbase live trading"
+      
+  binance:
+    sandbox:
+      config_file: "binance_sandbox.yaml"
+      description: "Binance testnet for testing"
+    production:
+      config_file: "binance_production.yaml"
+      description: "Binance live trading"
+
+# Global settings
+settings:
+  rate_limit_enabled: true
+  timeout_seconds: 30
+  retry_attempts: 3
+  
+# Safety settings
+safety:
+  require_confirmation_for_production: true
+  max_order_size_usd: 1000  # Maximum order size in USD
+  allowed_symbols: ["BTC/USD", "ETH/USD", "BTC/USDT", "ETH/USDT"] 

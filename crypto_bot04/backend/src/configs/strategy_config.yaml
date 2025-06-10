@@ -1,0 +1,66 @@
+# Strategy Configuration
+# Configure trading strategies, intervals, and parameters
+
+# Execution Settings
+interval_minutes: 30  # 30 for testing, 60 for production
+
+# Active Strategies
+active_strategies:
+  - LLM_Strategy
+  # - Moving_Average_Strategy  # Example traditional strategy
+
+# Strategy Configurations
+strategies:
+  
+  # LLM-Powered Autonomous Strategy
+  LLM_Strategy:
+    # OpenAI Configuration
+    model: "gpt-4o"
+    api_key: null  # Set via environment variable OPENAI_API_KEY
+    temperature: 0.1
+    max_tokens: 1000
+    
+    # Trading Parameters
+    max_trade_size_usd: 1000
+    max_positions: 5
+    supported_symbols:
+      - "BTC/USD"
+      - "ETH/USD"
+      - "BTC/USDT"
+      - "ETH/USDT"
+    
+    # Risk Management
+    min_confidence_threshold: 0.6  # Only execute if confidence > 0.6
+    
+  # Traditional Moving Average Strategy (Example)
+  Moving_Average_Strategy:
+    short_window: 10
+    long_window: 30
+    symbol: "BTC/USD"
+    trade_amount: 0.001
+
+# Global Settings
+global_settings:
+  # Environment
+  environment: "sandbox"  # sandbox or production
+  
+  # Risk Limits
+  max_daily_trades: 10
+  max_portfolio_risk: 0.02  # 2% of portfolio per trade
+  
+  # Logging
+  log_level: "INFO"
+  log_file: "trading.log"
+
+# Strategy Manager Settings
+strategy_manager:
+  execution_interval_minutes: 60  # 1 hour for production, 30 for testing
+  default_strategy: "llm_strategy"
+  enable_auto_execution: false
+  
+# Risk Management
+risk_management:
+  max_portfolio_risk_percent: 5.0  # Max 5% of portfolio at risk
+  stop_loss_percent: 2.0
+  take_profit_percent: 3.0
+  max_consecutive_losses: 3 

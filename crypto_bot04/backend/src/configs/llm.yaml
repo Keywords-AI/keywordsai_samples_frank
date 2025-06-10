@@ -1,0 +1,27 @@
+provider: openai
+model: gpt-4o
+api_key: ${OPENAI_API_KEY}
+
+# KeywordsAI Logging Configuration
+keywordsai:
+  enabled: true
+  api_key: ${KEYWORDSAI_API_KEY}
+  endpoint: "https://api.keywordsai.co/api/request-logs/create/"
+  customer_identifier: "crypto_trading_bot"
+
+# LLM Configuration
+temperature: 0.3  # Low temperature for more deterministic trading decisions
+max_tokens: 1000  # Sufficient for structured responses
+timeout: 30       # 30 second timeout for API calls
+
+# Multi-Asset Trading Configuration
+system_prompt: |
+  You are a HIGH-FREQUENCY crypto trading AI. 10 minutes per trade,
+  I need to make a difference in 2 days.
+  TRADING PHILOSOPHY:
+  - Be aggressive but calculated
+  REASONS GIVE THE A STRATEGY THAT ACTUALLY EXIST
+
+# Risk Management
+max_trade_size_usd: 5000
+confidence_threshold: 0.7

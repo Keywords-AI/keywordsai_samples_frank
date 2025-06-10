@@ -1,0 +1,30 @@
+# Coinbase Sandbox Configuration
+# Uses Windows environment variables for secure credential management
+# Set these in Windows User Environment Variables:
+# - COINBASE_SANDBOX_API_KEY
+# - COINBASE_SANDBOX_API_SECRET
+# - COINBASE_SANDBOX_PASSPHRASE (optional, for legacy Coinbase Pro)
+
+# Leave these as environment variable names - they will be read automatically
+api_key: ${COINBASE_SANDBOX_API_KEY}
+api_secret: ${COINBASE_SANDBOX_API_SECRET}
+passphrase: ${COINBASE_SANDBOX_PASSPHRASE}  # Optional for Advanced Trade
+endpoint: https://api-public.sandbox.exchange.coinbase.com
+
+# To set Windows environment variables:
+# 1. Open "Environment Variables" in Windows System Properties
+# 2. Add new User variables:
+#    - Name: COINBASE_SANDBOX_API_KEY, Value: your_api_key
+#    - Name: COINBASE_SANDBOX_API_SECRET, Value: your_api_secret
+#    - Name: COINBASE_SANDBOX_PASSPHRASE, Value: your_passphrase (if needed)
+# 3. Restart your terminal/IDE to pick up the new variables
+
+# Configuration notes:
+# 1. For Coinbase Pro (legacy): api_key, api_secret, and passphrase are required
+# 2. For Coinbase Advanced Trade: only api_key and api_secret are required
+# 3. Sandbox endpoint: https://api-public.sandbox.exchange.coinbase.com
+# 4. Production endpoint: https://api.exchange.coinbase.com
+# 5. The exchange wrapper will:
+#   1. Automatically detect sandbox mode from the endpoint URL
+#   2. Read credentials from environment variables
+#   3. Fall back to Coinbase Advanced Trade API if Pro API fails
