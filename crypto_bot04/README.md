@@ -1,6 +1,6 @@
-# 🤖 AI Crypto Trading Bot
+# 🤖 AI Crypto Trading Bot (Please Read)
 
-A sophisticated crypto trading bot powered by GPT-4o with real-time monitoring and Keywords AI logging integration. Perfect for YouTube demonstrations and educational purposes.
+A sophisticated crypto trading bot powered by GPT-4o with real-time monitoring and Keywords AI logging integration. Only test for Coinbase Sandbox now!!!!!!!
 
 ## ✨ Features
 
