@@ -1,0 +1,49 @@
+# Trading Bot Configuration
+# Main config for the 30-minute autonomous trading bot
+
+# Bot Settings
+bot:
+  name: "30-Minute Crypto Trading Bot"
+  version: "1.0"
+  interval_minutes: 30
+  environment: "sandbox"  # sandbox or production
+  customer_identifier: "crypto_trading_bot_v1"
+
+# Trading Parameters
+trading:
+  min_confidence_threshold: 0.6
+  max_trade_size_usd: 1000
+  max_daily_trades: 20
+  supported_symbols:
+    - "BTC/USD"
+    - "ETH/USD"
+
+# Exchange Configuration
+exchange:
+  type: "coinbase_sandbox"  # coinbase_sandbox, coinbase_production
+  config_path: "src/configs/exchanges/coinbase_sandbox.yaml"
+
+# Strategy Configuration  
+strategy:
+  type: "llm_strategy"  # llm_strategy, moving_average, etc.
+  config_path: "src/configs/llm.yaml"
+
+# KeywordsAI Tracing
+keywordsai:
+  enabled: true
+  api_key: "${KEYWORDSAI_API_KEY}"
+  base_url: "https://api.keywordsai.co/api"
+  app_name: "crypto_trading_bot"
+  disable_batch: true  # For real-time monitoring
+
+# Risk Management
+risk_management:
+  max_portfolio_risk_percent: 5.0
+  emergency_stop_loss_percent: 10.0
+  max_consecutive_losses: 3
+
+# Logging
+logging:
+  level: "INFO"
+  file: "trading_bot.log"
+  format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s" 

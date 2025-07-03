@@ -6,7 +6,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 def demo_call(input, 
-              model="gpt-4o-mini",
+              model="gemini/gemini-2.5-pro-preview-05-06",
               token=None
               ):
     # Use provided token or get from environment

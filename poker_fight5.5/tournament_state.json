@@ -1,0 +1,28 @@
+{
+  "tournament_id": "20250618_160128",
+  "current_hand": 21,
+  "current_phase": "mid",
+  "dealer_position": 2,
+  "players": {
+    "GPT-4o": {
+      "chips": 1735,
+      "eliminated": false,
+      "model": "gpt-4o"
+    },
+    "Claude": {
+      "chips": 1835,
+      "eliminated": false,
+      "model": "claude-3-5-sonnet-20241022"
+    },
+    "Grok": {
+      "chips": 930,
+      "eliminated": false,
+      "model": "xai/grok-2-1212"
+    }
+  },
+  "tournament_started": true,
+  "tournament_completed": false,
+  "winner": null,
+  "created_at": "2025-06-18T16:01:28.920900",
+  "last_updated": "2025-06-18T16:05:38.689831"
+}

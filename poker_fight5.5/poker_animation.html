@@ -1,0 +1,782 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🎰 AI Poker Tournament Animation</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --background-clr: #374151;
+            --background-clr-alt: #4b5563;
+            --table-clr: #6b7280;
+            --border-clr: #000000;
+            --button-bg-clr: #1d4ed8;
+            --scorecard-clr: #fbbf24;
+            --player-bg: #4b5563;
+            --text-light: #f9fafb;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: "Noto Sans", sans-serif;
+            background: linear-gradient(135deg, var(--background-clr) 0%, var(--background-clr-alt) 100%);
+            min-height: 100vh;
+            color: var(--text-light);
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            background: linear-gradient(45deg, #fbbf24, #f59e0b);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .file-input {
+            background: var(--player-bg);
+            border: 2px dashed var(--border-clr);
+            border-radius: 15px;
+            padding: 20px;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .game-info {
+            display: flex;
+            justify-content: space-between;
+            background: var(--player-bg);
+            padding: 15px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+        }
+
+        .poker-table {
+            background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%);
+            border: 12px solid var(--border-clr);
+            border-radius: 60px;
+            padding: 50px;
+            margin: 30px auto;
+            max-width: 1000px;
+            position: relative;
+            box-shadow: 
+                0 12px 40px rgba(0,0,0,0.6),
+                inset 0 2px 10px rgba(255,255,255,0.1),
+                inset 0 -2px 10px rgba(0,0,0,0.3);
+            border-style: double;
+            border-width: 8px;
+        }
+
+        .community-cards {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin: 35px 0;
+            min-height: 130px;
+            align-items: center;
+            background: rgba(0,0,0,0.2);
+            border-radius: 25px;
+            padding: 25px;
+            border: 1px solid rgba(0,0,0,0.4);
+            box-shadow: inset 0 2px 8px rgba(0,0,0,0.3);
+        }
+
+        .pot-display {
+            text-align: center;
+            margin: 25px 0;
+            background: linear-gradient(145deg, var(--scorecard-clr), #f59e0b);
+            color: #000;
+            padding: 20px 30px;
+            border-radius: 30px;
+            font-size: 1.8rem;
+            font-weight: 700;
+            box-shadow: 
+                0 6px 20px rgba(251, 191, 36, 0.4),
+                inset 0 2px 8px rgba(255,255,255,0.3),
+                inset 0 -2px 8px rgba(0,0,0,0.2);
+            border: 2px solid #000;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+        }
+
+        .players-container {
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        .player {
+            background: linear-gradient(145deg, #4b5563, #374151);
+            border: 2px solid var(--border-clr);
+            border-radius: 25px;
+            padding: 25px;
+            min-width: 280px;
+            text-align: center;
+            box-shadow: 
+                0 8px 25px rgba(0,0,0,0.4),
+                inset 0 1px 5px rgba(255,255,255,0.1),
+                inset 0 -1px 5px rgba(0,0,0,0.2);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .player::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+        }
+
+        .player.active {
+            border-color: var(--scorecard-clr);
+            box-shadow: 0 0 20px rgba(251, 191, 36, 0.5);
+        }
+
+        .player.folded {
+            opacity: 0.5;
+            filter: grayscale(1);
+        }
+
+        .player.winner {
+            border-color: #10b981;
+            box-shadow: 0 0 25px rgba(16, 185, 129, 0.7);
+            animation: winner-glow 2s ease-in-out infinite alternate;
+        }
+
+        @keyframes winner-glow {
+            0% { box-shadow: 0 0 25px rgba(16, 185, 129, 0.7); }
+            100% { box-shadow: 0 0 35px rgba(16, 185, 129, 1); }
+        }
+
+        .player-name {
+            font-size: 1.2rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+            color: var(--scorecard-clr);
+        }
+
+        .player-chips {
+            font-size: 1.1rem;
+            margin-bottom: 15px;
+            color: #10b981;
+            font-weight: 600;
+        }
+
+        .player-cards {
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+            margin-bottom: 15px;
+            min-height: 100px;
+            align-items: center;
+        }
+
+        .player-action {
+            background: var(--button-bg-clr);
+            color: white;
+            padding: 8px 15px;
+            border-radius: 15px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            min-height: 35px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .card {
+            width: 60px;
+            height: 84px;
+            position: relative;
+            cursor: pointer;
+            transform-style: preserve-3d;
+            transition: transform 0.6s ease-in-out;
+        }
+
+        .card.community {
+            width: 80px;
+            height: 112px;
+        }
+
+        .card-face {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border-radius: 12px;
+            box-shadow: 
+                0 4px 12px rgba(0,0,0,0.4),
+                inset 0 1px 3px rgba(255,255,255,0.2);
+            transition: transform 600ms ease-in-out;
+            backface-visibility: hidden;
+            border: 1px solid rgba(0,0,0,0.2);
+        }
+
+        .card-back {
+            transform: rotateY(0);
+            background: url('texas-holdem-master/images/B.svg') center/cover;
+        }
+
+        .card-front {
+            transform: rotateY(180deg);
+        }
+
+        .card.turned .card-back {
+            transform: rotateY(-180deg);
+        }
+
+        .card.turned .card-front {
+            transform: rotateY(0);
+        }
+
+        .controls {
+            text-align: center;
+            margin: 30px 0;
+        }
+
+        .control-button {
+            background: var(--button-bg-clr);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            margin: 0 10px;
+            border-radius: 10px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .control-button:hover:not(:disabled) {
+            background: #1e40af;
+            transform: translateY(-2px);
+        }
+
+        .control-button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .action-log {
+            background: linear-gradient(145deg, var(--player-bg), #374151);
+            border-radius: 20px;
+            padding: 25px;
+            margin: 20px 0;
+            max-height: 400px;
+            overflow-y: auto;
+            border: 2px solid var(--border-clr);
+            box-shadow: inset 0 2px 8px rgba(0,0,0,0.3);
+        }
+
+        .action-item {
+            padding: 12px 0;
+            border-bottom: 1px solid rgba(251, 191, 36, 0.2);
+            font-size: 0.95rem;
+            line-height: 1.4;
+        }
+
+        .decision-context {
+            background: rgba(29, 78, 216, 0.1);
+            border-left: 4px solid var(--button-bg-clr);
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.85rem;
+        }
+
+        .llm-reasoning {
+            background: rgba(251, 191, 36, 0.1);
+            border-left: 4px solid var(--scorecard-clr);
+            padding: 12px;
+            margin: 8px 0;
+            border-radius: 8px;
+            font-style: italic;
+            color: #fbbf24;
+        }
+
+        .hand-situation {
+            background: rgba(16, 185, 129, 0.1);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+            padding: 10px;
+            margin: 5px 0;
+            border-radius: 8px;
+            font-size: 0.9rem;
+        }
+
+        .player-action-display {
+            background: var(--button-bg-clr);
+            color: white;
+            padding: 10px 18px;
+            border-radius: 18px;
+            font-size: 1rem;
+            font-weight: 600;
+            min-height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-top: 10px;
+            box-shadow: 0 2px 8px rgba(29, 78, 216, 0.4);
+        }
+
+        .action-item:last-child {
+            border-bottom: none;
+        }
+
+        .phase-indicator {
+            background: linear-gradient(45deg, var(--scorecard-clr), #f59e0b);
+            color: #000;
+            padding: 10px 20px;
+            border-radius: 20px;
+            font-weight: 700;
+            font-size: 1.1rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎰 AI Poker Tournament Animation</h1>
+            <p>Step through your poker tournament CSV data with animations</p>
+        </div>
+
+        <div class="file-input">
+            <h3>📁 Load Tournament CSV</h3>
+            <input type="file" id="csvFile" accept=".csv" />
+            <p>Select your poker tournament CSV file to start the animation</p>
+        </div>
+
+        <div class="game-info" style="display: none;" id="gameInfo">
+            <div><strong>Hand:</strong> <span id="currentHand">1</span></div>
+            <div><strong>Round:</strong> <span id="currentRound">start</span></div>
+            <div><strong>Action:</strong> <span id="currentAction">Hand Start</span></div>
+            <div id="phaseIndicator">Early Phase</div>
+        </div>
+
+        <div class="poker-table" style="display: none;" id="pokerTable">
+            <div class="community-cards" id="communityCards"></div>
+            
+            <div class="pot-display">
+                💰 Pot: $<span id="potAmount">0</span>
+            </div>
+
+            <div class="players-container" id="playersContainer"></div>
+        </div>
+
+        <div class="controls" style="display: none;" id="controls">
+            <button class="control-button" id="prevBtn">⏮ Previous</button>
+            <button class="control-button" id="playPauseBtn">▶ Play</button>
+            <button class="control-button" id="nextBtn">⏭ Next</button>
+            <button class="control-button" id="speedBtn">Speed: 1x</button>
+        </div>
+
+        <div class="action-log" style="display: none;" id="actionLog">
+            <h3>📜 Action Log</h3>
+            <div id="actionItems"></div>
+        </div>
+    </div>
+
+    <script>
+        class PokerAnimator {
+            constructor() {
+                this.csvData = [];
+                this.currentStep = 0;
+                this.isPlaying = false;
+                this.playSpeed = 1000;
+                this.playInterval = null;
+                this.foldedPlayers = new Set(); // Track folded players in current hand
+                
+                this.initializeEventListeners();
+            }
+
+            initializeEventListeners() {
+                document.getElementById('csvFile').addEventListener('change', (e) => this.loadCSV(e));
+                document.getElementById('prevBtn').addEventListener('click', () => this.previousStep());
+                document.getElementById('nextBtn').addEventListener('click', () => this.nextStep());
+                document.getElementById('playPauseBtn').addEventListener('click', () => this.togglePlay());
+                document.getElementById('speedBtn').addEventListener('click', () => this.changeSpeed());
+            }
+
+            async loadCSV(event) {
+                const file = event.target.files[0];
+                if (!file) return;
+
+                const text = await file.text();
+                this.parseCSV(text);
+                this.showGameInterface();
+                this.currentStep = 0;
+                this.displayStep();
+            }
+
+            parseCSV(text) {
+                const lines = text.split('\n');
+                const headers = lines[0].split(',');
+                
+                this.csvData = [];
+                for (let i = 1; i < lines.length; i++) {
+                    if (lines[i].trim()) {
+                        const values = this.parseCSVLine(lines[i]);
+                        if (values.length === headers.length) {
+                            const row = {};
+                            headers.forEach((header, index) => {
+                                row[header.trim()] = values[index].trim().replace(/"/g, '');
+                            });
+                            this.csvData.push(row);
+                        }
+                    }
+                }
+                console.log(`Loaded ${this.csvData.length} actions from CSV`);
+            }
+
+            parseCSVLine(line) {
+                const result = [];
+                let current = '';
+                let inQuotes = false;
+                
+                for (let i = 0; i < line.length; i++) {
+                    const char = line[i];
+                    if (char === '"') {
+                        inQuotes = !inQuotes;
+                    } else if (char === ',' && !inQuotes) {
+                        result.push(current);
+                        current = '';
+                    } else {
+                        current += char;
+                    }
+                }
+                result.push(current);
+                return result;
+            }
+
+            showGameInterface() {
+                document.getElementById('gameInfo').style.display = 'flex';
+                document.getElementById('pokerTable').style.display = 'block';
+                document.getElementById('controls').style.display = 'block';
+                document.getElementById('actionLog').style.display = 'block';
+            }
+
+            displayStep() {
+                if (this.currentStep >= this.csvData.length) return;
+                
+                const action = this.csvData[this.currentStep];
+                this.updateGameInfo(action);
+                this.updateTable(action);
+                this.addToActionLog(action);
+                this.updateControls();
+            }
+
+            updateGameInfo(action) {
+                document.getElementById('currentHand').textContent = action.hand;
+                document.getElementById('currentRound').textContent = action.round;
+                document.getElementById('currentAction').textContent = action.action;
+                
+                const hand = parseInt(action.hand);
+                let phase = '';
+                if (hand <= 10) phase = '🟢 Early Phase';
+                else if (hand <= 30) phase = '🟡 Mid Phase';
+                else phase = '🔴 Late Phase';
+                
+                document.getElementById('phaseIndicator').textContent = phase;
+            }
+
+            updateTable(action) {
+                this.updatePot(action);
+                this.updatePlayers(action);
+                this.updateCommunityCards(action);
+            }
+
+            updatePot(action) {
+                document.getElementById('potAmount').textContent = action.pot || '0';
+            }
+
+            updatePlayers(action) {
+                const container = document.getElementById('playersContainer');
+                
+                if (container.children.length === 0) {
+                    this.initializePlayers();
+                }
+
+                // Clear folded players list on new hand
+                if (action.action === 'HAND_START') {
+                    this.foldedPlayers.clear();
+                }
+
+                // Track folded players
+                if (action.action === 'FOLD' && action.player) {
+                    this.foldedPlayers.add(action.player);
+                }
+
+                const players = ['GPT-4o', 'Claude', 'Grok'];
+                players.forEach((playerName, index) => {
+                    const playerElement = document.getElementById(`player-${index}`);
+                    if (!playerElement) return;
+
+                    const chipsElement = playerElement.querySelector('.player-chips');
+                    const chips = action[`llm${index + 1}_chips`] || '1500';
+                    chipsElement.textContent = `$${chips}`;
+
+                    const cardsContainer = playerElement.querySelector('.player-cards');
+                    this.updatePlayerCards(cardsContainer, action[`llm${index + 1}_cards`], action.action);
+
+                    playerElement.classList.remove('active', 'folded', 'winner');
+                    
+                    if (action.player === playerName) {
+                        playerElement.classList.add('active');
+                    }
+
+                    if (action.winner === playerName) {
+                        playerElement.classList.add('winner');
+                    }
+
+                    // Keep folded players greyed out until next hand
+                    if (this.foldedPlayers.has(playerName)) {
+                        playerElement.classList.add('folded');
+                    }
+                });
+            }
+
+            initializePlayers() {
+                const container = document.getElementById('playersContainer');
+                const players = ['GPT-4o', 'Claude', 'Grok'];
+                
+                players.forEach((playerName, index) => {
+                    const playerDiv = document.createElement('div');
+                    playerDiv.className = 'player';
+                    playerDiv.id = `player-${index}`;
+                    
+                    playerDiv.innerHTML = `
+                        <div class="player-name">${playerName}</div>
+                        <div class="player-chips">$1500</div>
+                        <div class="player-cards"></div>
+                        <div class="player-action">Ready</div>
+                    `;
+                    
+                    container.appendChild(playerDiv);
+                });
+            }
+
+            updatePlayerCards(container, cardsData, actionType) {
+                // Clear cards only on hand start
+                if (actionType === 'HAND_START') {
+                    container.innerHTML = '';
+                    return;
+                }
+
+                // Skip if cards are already flipped and visible
+                if (container.children.length > 0 && 
+                    container.children[0].classList.contains('turned')) {
+                    return; // Cards already flipped, keep them visible
+                }
+
+                // Only flip cards on DEAL_HOLE_CARDS action
+                if (actionType === 'DEAL_HOLE_CARDS' && cardsData && cardsData !== 'xx, xx') {
+                    container.innerHTML = ''; // Clear any existing cards
+                    
+                    const cards = cardsData.split(', ');
+                    cards.forEach((cardStr, index) => {
+                        if (cardStr && cardStr !== 'xx') {
+                            const card = this.createCard('back', cardStr);
+                            container.appendChild(card);
+                            
+                            // Flip with delay for animation
+                            setTimeout(() => {
+                                card.classList.add('turned');
+                            }, 200 * (index + 1));
+                        }
+                    });
+                } else if (actionType !== 'DEAL_HOLE_CARDS' && container.children.length === 0) {
+                    // Show card backs for other actions if no cards exist
+                    for (let i = 0; i < 2; i++) {
+                        const card = this.createCard('back');
+                        container.appendChild(card);
+                    }
+                }
+            }
+
+            updateCommunityCards(action) {
+                const container = document.getElementById('communityCards');
+                
+                // Clear community cards only on hand start
+                if (action.action === 'HAND_START') {
+                    container.innerHTML = '';
+                    return;
+                }
+                
+                const communityCards = [];
+                for (let i = 1; i <= 5; i++) {
+                    const card = action[`community_${i}`];
+                    if (card && card.trim()) {
+                        communityCards.push(card);
+                    }
+                }
+
+                // Initialize 5 card slots if empty
+                if (container.children.length === 0) {
+                    for (let i = 0; i < 5; i++) {
+                        const card = this.createCard('community', null);
+                        container.appendChild(card);
+                    }
+                }
+                
+                // Keep previously flipped cards visible and only flip new ones
+                for (let i = 0; i < 5; i++) {
+                    const cardElement = container.children[i];
+                    if (!cardElement) continue;
+                    
+                    if (communityCards[i] && !cardElement.classList.contains('turned')) {
+                        // This card should be visible but isn't flipped yet
+                        const frontFace = cardElement.querySelector('.card-front');
+                        frontFace.style.background = `url('texas-holdem-master/images/${communityCards[i]}.svg') center/cover`;
+                        
+                        // Only animate flip for specific dealing actions
+                        if (action.action === 'DEAL_FLOP' && i < 3) {
+                            setTimeout(() => {
+                                cardElement.classList.add('turned');
+                            }, 300 * i);
+                        } else if (action.action === 'DEAL_TURN' && i === 3) {
+                            setTimeout(() => {
+                                cardElement.classList.add('turned');
+                            }, 300);
+                        } else if (action.action === 'DEAL_RIVER' && i === 4) {
+                            setTimeout(() => {
+                                cardElement.classList.add('turned');
+                            }, 300);
+                        }
+                    }
+                }
+            }
+
+            createCard(type, cardValue = null) {
+                const card = document.createElement('div');
+                card.className = `card ${type === 'community' ? 'community' : ''}`;
+                
+                if (type === 'back' && !cardValue) {
+                    // Card back only (no front face needed)
+                    card.innerHTML = `
+                        <div class="card-face card-back"></div>
+                        <div class="card-face card-front"></div>
+                    `;
+                } else {
+                    // Create card with both faces for flipping
+                    const imagePath = cardValue ? `texas-holdem-master/images/${cardValue}.svg` : '';
+                    card.innerHTML = `
+                        <div class="card-face card-back"></div>
+                        <div class="card-face card-front" style="background: url('${imagePath}') center/cover;"></div>
+                    `;
+                    
+                    if (type === 'front') {
+                        // Immediately show front face
+                        card.classList.add('turned');
+                    }
+                }
+                
+                return card;
+            }
+
+            addToActionLog(action) {
+                const container = document.getElementById('actionItems');
+                
+                let logText = `Hand ${action.hand} - ${action.action}`;
+                if (action.player) logText += ` by ${action.player}`;
+                if (action.amount && action.amount !== '0') logText += ` ($${action.amount})`;
+                if (action.reasoning) logText += ` - ${action.reasoning}`;
+                
+                const logItem = document.createElement('div');
+                logItem.className = 'action-item';
+                logItem.textContent = logText;
+                
+                container.insertBefore(logItem, container.firstChild);
+                
+                while (container.children.length > 20) {
+                    container.removeChild(container.lastChild);
+                }
+            }
+
+            previousStep() {
+                if (this.currentStep > 0) {
+                    this.currentStep--;
+                    this.displayStep();
+                }
+            }
+
+            nextStep() {
+                if (this.currentStep < this.csvData.length - 1) {
+                    this.currentStep++;
+                    this.displayStep();
+                }
+            }
+
+            togglePlay() {
+                this.isPlaying = !this.isPlaying;
+                const btn = document.getElementById('playPauseBtn');
+                
+                if (this.isPlaying) {
+                    btn.textContent = '⏸ Pause';
+                    this.playInterval = setInterval(() => {
+                        this.nextStep();
+                        if (this.currentStep >= this.csvData.length - 1) {
+                            this.togglePlay();
+                        }
+                    }, this.playSpeed);
+                } else {
+                    btn.textContent = '▶ Play';
+                    if (this.playInterval) {
+                        clearInterval(this.playInterval);
+                        this.playInterval = null;
+                    }
+                }
+            }
+
+            changeSpeed() {
+                const speeds = [1000, 500, 250, 2000];
+                const speedTexts = ['1x', '2x', '4x', '0.5x'];
+                const currentIndex = speeds.indexOf(this.playSpeed);
+                const nextIndex = (currentIndex + 1) % speeds.length;
+                
+                this.playSpeed = speeds[nextIndex];
+                document.getElementById('speedBtn').textContent = `Speed: ${speedTexts[nextIndex]}`;
+                
+                if (this.isPlaying) {
+                    clearInterval(this.playInterval);
+                    this.playInterval = setInterval(() => {
+                        this.nextStep();
+                        if (this.currentStep >= this.csvData.length - 1) {
+                            this.togglePlay();
+                        }
+                    }, this.playSpeed);
+                }
+            }
+
+            updateControls() {
+                document.getElementById('prevBtn').disabled = this.currentStep === 0;
+                document.getElementById('nextBtn').disabled = this.currentStep >= this.csvData.length - 1;
+            }
+        }
+
+        const animator = new PokerAnimator();
+    </script>
+</body>
+</html> 
+</html> 

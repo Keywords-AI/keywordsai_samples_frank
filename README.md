@@ -21,10 +21,10 @@ keywordsai_samples/
     │   │   ├── services/    # Business logic
     │   │   └── utils/       # Utility functions
     │   ├── tests/           # Backend tests
-    │   └── requirements.txt # Python dependencies
+    │   ├── requirements.txt # Python dependencies
+    │   └── env.example      # Environment variables template
     ├── frontend/            # Frontend application
-    ├── start_backend.py     # Backend startup script
-    └── env.example          # Environment variables template
+    └── start_backend.py     # Backend startup script
 ```
 
 ## Getting Started Samples
@@ -78,14 +78,13 @@ The `crypto_bot04/` folder contains an advanced AI-powered cryptocurrency tradin
 
 ### Setup for Crypto Bot
 
-1. Navigate to the crypto bot directory:
+1. Navigate to the crypto bot backend directory:
    ```bash
-   cd crypto_bot04
+   cd crypto_bot04/backend
    ```
 
-2. Install backend dependencies:
+2. Install dependencies:
    ```bash
-   cd backend
    pip install -r requirements.txt
    ```
 
@@ -97,6 +96,7 @@ The `crypto_bot04/` folder contains an advanced AI-powered cryptocurrency tradin
 
 4. Run the backend:
    ```bash
+   cd ..
    python start_backend.py
    ```
 
