@@ -1,0 +1,23 @@
+{
+  "name": "openai_js_tracing",
+  "version": "1.0.0",
+  "description": "Simple scheduling demo with OpenAI Agents and Google Calendar",
+  "type": "module",           
+  "main": "main.js",
+  "scripts": {
+    "start": "node main.js",
+    "server": "node server.js",
+    "dev": "node server.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@openai/agents": "^0.0.9",
+    "googleapis": "^128.0.0",
+    "dotenv": "^16.3.1",
+    "express": "^4.18.2",
+    "cors": "^2.8.5"
+  }
+}

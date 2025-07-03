@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Scheduling Assistant</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            max-width: 800px;
+            width: 100%;
+            max-height: 90vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            font-weight: 300;
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .main-content {
+            padding: 40px;
+            flex: 1;
+            overflow-y: auto;
+        }
+
+        .input-section {
+            margin-bottom: 30px;
+        }
+
+        .input-group {
+            position: relative;
+            margin-bottom: 20px;
+        }
+
+        .input-field {
+            width: 100%;
+            padding: 20px 25px;
+            border: 2px solid #e1e5e9;
+            border-radius: 15px;
+            font-size: 1.1rem;
+            transition: all 0.3s ease;
+            background: #f8f9fa;
+        }
+
+        .input-field:focus {
+            outline: none;
+            border-color: #667eea;
+            background: white;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .submit-btn {
+            width: 100%;
+            padding: 18px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 15px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .submit-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .submit-btn:active {
+            transform: translateY(0);
+        }
+
+        .submit-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .response-section {
+            display: none;
+            margin-top: 30px;
+        }
+
+        .response-card {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 25px;
+            border-left: 5px solid #667eea;
+            margin-bottom: 20px;
+        }
+
+        .response-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .response-icon {
+            width: 40px;
+            height: 40px;
+            background: #667eea;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 15px;
+            color: white;
+            font-size: 1.2rem;
+        }
+
+        .response-title {
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .response-message {
+            font-size: 1.1rem;
+            line-height: 1.6;
+            color: #555;
+            margin-bottom: 20px;
+        }
+
+        .event-details {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 15px 0;
+            border: 1px solid #e1e5e9;
+        }
+
+        .event-detail {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 0;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .event-detail:last-child {
+            border-bottom: none;
+        }
+
+        .detail-label {
+            font-weight: 600;
+            color: #333;
+        }
+
+        .detail-value {
+            color: #667eea;
+            font-weight: 500;
+        }
+
+        .calendar-link {
+            display: inline-block;
+            background: #667eea;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .calendar-link:hover {
+            background: #5a6fd8;
+            transform: translateY(-1px);
+        }
+
+        .next-steps, .helpful-tips {
+            margin-top: 20px;
+        }
+
+        .section-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+        }
+
+        .section-title::before {
+            content: "✓";
+            background: #28a745;
+            color: white;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8rem;
+            margin-right: 10px;
+        }
+
+        .tips-title::before {
+            content: "💡";
+            background: #ffc107;
+            color: #333;
+        }
+
+        .list-item {
+            padding: 8px 0;
+            color: #555;
+            line-height: 1.5;
+        }
+
+        .list-item::before {
+            content: "•";
+            color: #667eea;
+            font-weight: bold;
+            margin-right: 8px;
+        }
+
+        .error-message {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 10px;
+            border-left: 5px solid #dc3545;
+            margin-top: 20px;
+        }
+
+        .examples {
+            background: #e3f2fd;
+            border-radius: 15px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+
+        .examples h3 {
+            color: #1976d2;
+            margin-bottom: 15px;
+            font-size: 1.1rem;
+        }
+
+        .example-item {
+            background: white;
+            padding: 12px 15px;
+            border-radius: 8px;
+            margin: 8px 0;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 1px solid #e1e5e9;
+        }
+
+        .example-item:hover {
+            background: #f8f9fa;
+            border-color: #667eea;
+            transform: translateX(5px);
+        }
+
+        .example-item::before {
+            content: "💬";
+            margin-right: 10px;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                margin: 10px;
+                max-height: 95vh;
+            }
+
+            .header h1 {
+                font-size: 2rem;
+            }
+
+            .main-content {
+                padding: 20px;
+            }
+
+            .input-field {
+                padding: 15px 20px;
+                font-size: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🤖 AI Scheduling Assistant</h1>
+            <p>Schedule meetings and events with natural language</p>
+        </div>
+
+        <div class="main-content">
+            <div class="input-section">
+                <div class="input-group">
+                    <input type="text" 
+                           class="input-field" 
+                           id="scheduleInput" 
+                           placeholder="Try: 'Schedule a meeting for tomorrow at 2pm' or 'Book lunch for today at noon'"
+                           autocomplete="off">
+                </div>
+                <button class="submit-btn" id="submitBtn" onclick="scheduleEvent()">
+                    Schedule Event
+                </button>
+            </div>
+
+            <div class="loading" id="loading">
+                <div class="spinner"></div>
+                <p>🤖 AI is working on your schedule...</p>
+            </div>
+
+            <div class="response-section" id="responseSection">
+                <!-- Response content will be inserted here -->
+            </div>
+
+            <div class="examples">
+                <h3>💡 Try these examples:</h3>
+                <div class="example-item" onclick="useExample('Schedule a team meeting for tomorrow at 10am')">
+                    Schedule a team meeting for tomorrow at 10am
+                </div>
+                <div class="example-item" onclick="useExample('Book lunch for today at 12:30pm')">
+                    Book lunch for today at 12:30pm
+                </div>
+                <div class="example-item" onclick="useExample('Schedule a doctor appointment for next week')">
+                    Schedule a doctor appointment for next week
+                </div>
+                <div class="example-item" onclick="useExample('Set up a coffee chat for Friday at 3pm')">
+                    Set up a coffee chat for Friday at 3pm
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const inputField = document.getElementById('scheduleInput');
+        const submitBtn = document.getElementById('submitBtn');
+        const loading = document.getElementById('loading');
+        const responseSection = document.getElementById('responseSection');
+
+        // Handle Enter key
+        inputField.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                scheduleEvent();
+            }
+        });
+
+        // Use example
+        function useExample(text) {
+            inputField.value = text;
+            inputField.focus();
+        }
+
+        // Schedule event function
+        async function scheduleEvent() {
+            const request = inputField.value.trim();
+            
+            if (!request) {
+                showError('Please enter a scheduling request');
+                return;
+            }
+
+            // Show loading
+            setLoading(true);
+            hideResponse();
+            hideError();
+
+            try {
+                const response = await fetch('/api/schedule', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ request })
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.error || 'Failed to schedule event');
+                }
+
+                if (data.success) {
+                    showResponse(data.response, data.eventLink);
+                } else {
+                    throw new Error(data.error || 'Unknown error occurred');
+                }
+
+            } catch (error) {
+                showError('Failed to schedule event: ' + error.message);
+            } finally {
+                setLoading(false);
+            }
+        }
+
+        // Show response
+        function showResponse(response, eventLink) {
+            const responseHtml = `
+                <div class="response-card">
+                    <div class="response-header">
+                        <div class="response-icon">✅</div>
+                        <div class="response-title">${response.summary}</div>
+                    </div>
+                    
+                    <div class="response-message">${response.message}</div>
+                    
+                    <div class="event-details">
+                        <div class="event-detail">
+                            <span class="detail-label">Event:</span>
+                            <span class="detail-value">${response.details.eventTitle}</span>
+                        </div>
+                        <div class="event-detail">
+                            <span class="detail-label">Date:</span>
+                            <span class="detail-value">${response.details.date}</span>
+                        </div>
+                        <div class="event-detail">
+                            <span class="detail-label">Time:</span>
+                            <span class="detail-value">${response.details.time}</span>
+                        </div>
+                        <div class="event-detail">
+                            <span class="detail-label">Duration:</span>
+                            <span class="detail-value">${response.details.duration} minutes</span>
+                        </div>
+                        ${eventLink ? `
+                        <div class="event-detail">
+                            <span class="detail-label">Calendar:</span>
+                            <a href="${eventLink}" class="calendar-link" target="_blank">View Event</a>
+                        </div>
+                        ` : ''}
+                    </div>
+                    
+                    <div class="next-steps">
+                        <div class="section-title">Next Steps</div>
+                        ${response.nextSteps.map(step => `<div class="list-item">${step}</div>`).join('')}
+                    </div>
+                    
+                    <div class="helpful-tips">
+                        <div class="section-title tips-title">Helpful Tips</div>
+                        ${response.helpfulTips.map(tip => `<div class="list-item">${tip}</div>`).join('')}
+                    </div>
+                </div>
+            `;
+            
+            responseSection.innerHTML = responseHtml;
+            responseSection.style.display = 'block';
+        }
+
+        // Show error
+        function showError(message) {
+            const errorHtml = `<div class="error-message">❌ ${message}</div>`;
+            responseSection.innerHTML = errorHtml;
+            responseSection.style.display = 'block';
+        }
+
+        // Hide error
+        function hideError() {
+            const errorElements = responseSection.querySelectorAll('.error-message');
+            errorElements.forEach(el => el.remove());
+        }
+
+        // Hide response
+        function hideResponse() {
+            responseSection.style.display = 'none';
+        }
+
+        // Set loading state
+        function setLoading(isLoading) {
+            loading.style.display = isLoading ? 'block' : 'none';
+            submitBtn.disabled = isLoading;
+            submitBtn.textContent = isLoading ? 'Scheduling...' : 'Schedule Event';
+        }
+
+        // Focus input on page load
+        window.addEventListener('load', () => {
+            inputField.focus();
+        });
+    </script>
+</body>
+</html> 
