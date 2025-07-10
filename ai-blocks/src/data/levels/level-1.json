@@ -1,0 +1,89 @@
+{
+  "id": "level-1",
+  "title": "Level 1 - Meeting Scheduler",
+  "description": "Learn the basics by creating a complete meeting scheduler workflow using all available blocks.",
+  "difficulty": "easy",
+  "tags": ["basics", "tutorial", "text-processing"],
+  "targetTokens": 1000,
+  "targetApiCalls": 3,
+  "targetTime": 30,
+  "observabilityTarget": 80,
+  "starThresholds": {
+    "oneStar": 60,
+    "twoStar": 80, 
+    "threeStar": 95
+  },
+  "starterGraph": {
+    "nodes": [
+      {
+        "id": "input-1",
+        "type": "userInput",
+        "position": { "x": 100, "y": 200 },
+        "data": {
+          "label": "User Input",
+          "params": {
+            "prompt": "Enter some text to process:",
+            "defaultValue": "Hello, world!"
+          }
+        }
+      }
+    ],
+    "edges": []
+  },
+  "tests": [
+    {
+      "id": "execution-success",
+      "name": "Workflow executes successfully",
+      "description": "The workflow should complete without errors",
+      "category": "functionality",
+      "points": 30,
+      "assertion": "executionSucceeded"
+    },
+    {
+      "id": "uses-llm",
+      "name": "Uses workflow components", 
+      "description": "The workflow must include at least one LLM block",
+      "category": "functionality",
+      "points": 25,
+      "assertion": "usesBlockType",
+      "params": ["llmParse"]
+    },
+    {
+      "id": "has-output",
+      "name": "Produces output",
+      "description": "The final result should contain some processed text",
+      "category": "functionality", 
+      "points": 20,
+      "assertion": "outputContains",
+      "params": ["Workflow Response"]
+    },
+    {
+      "id": "token-efficiency",
+      "name": "Token usage under budget",
+      "description": "Should use fewer than 800 tokens",
+      "category": "performance",
+      "points": 15,
+      "assertion": "tokenUsageUnder", 
+      "params": [800]
+    },
+    {
+      "id": "connected-workflow",
+      "name": "Properly connected workflow",
+      "description": "Blocks should be connected in a logical flow",
+      "category": "quality",
+      "points": 10,
+      "assertion": "hasConnectedFlow"
+    }
+  ],
+  "hints": [
+    "Start by adding User Input and connect all blocks to build the complete workflow",
+    "Use ALL available blocks to create a meeting scheduler workflow", 
+    "Connect blocks in the right order: Input → Context → Parse → Calendar → Output",
+    "The goal is to build a complete workflow using every block provided"
+  ],
+  "solution": {
+    "description": "Connect User Input → LLM Parse with a simple processing prompt",
+    "expectedBlocks": ["userInput", "llmParse"],
+    "expectedConnections": 1
+  }
+} 
