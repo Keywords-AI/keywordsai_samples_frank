@@ -37,7 +37,7 @@ export class Evaluator {
   evaluate(trace: ExecutionTrace, level: LevelDefinition): EvaluationResult {
     const testResults = this.runTests(trace, level.tests);
     const budgetConstraints = this.checkBudgets(trace, level);
-    const observabilityScore = this.calculateObservabilityScore(trace, level);
+    const observabilityScore = this.calculateObservabilityScore(trace);
     
     // Calculate overall score
     const { score, passed } = this.calculateScore(testResults, budgetConstraints, observabilityScore, level);
@@ -73,7 +73,7 @@ export class Evaluator {
             name: test.name,
             passed: false,
             message: result,
-            nodeId: this.findFailureNode(trace, result),
+            nodeId: this.findFailureNode(trace),
           };
         }
       } catch (error) {
@@ -124,7 +124,7 @@ export class Evaluator {
   /**
    * Calculate observability score based on how well the player debugged/traced
    */
-  private calculateObservabilityScore(trace: ExecutionTrace, level: LevelDefinition): number {
+  private calculateObservabilityScore(trace: ExecutionTrace): number {
     let score = 0;
     const maxScore = 100;
 
@@ -202,7 +202,7 @@ export class Evaluator {
   /**
    * Find which node likely caused a test failure
    */
-  private findFailureNode(trace: ExecutionTrace, errorMessage: string): string | undefined {
+  private findFailureNode(trace: ExecutionTrace): string | undefined {
     // Look for nodes with errors
     const errorNode = trace.results.find(r => r.metadata.error);
     if (errorNode) {
@@ -230,7 +230,7 @@ export class Evaluator {
       },
 
       /** Check if output matches exact value */
-      outputEquals: (expectedValue: any) => (trace: ExecutionTrace) => {
+      outputEquals: (expectedValue: unknown) => (trace: ExecutionTrace) => {
         const finalResult = trace.results[trace.results.length - 1];
         const output = finalResult?.output;
         return JSON.stringify(output) === JSON.stringify(expectedValue) || 

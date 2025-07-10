@@ -10,8 +10,8 @@ import { getBlock } from '@/engine/blocks/registry';
 
 interface CustomNodeData {
   label: string;
-  params?: Record<string, any>;
-  [key: string]: any;
+  params?: Record<string, unknown>;
+  [key: string]: unknown;
 }
 
 export function CustomNode({ data, type }: NodeProps<CustomNodeData>) {

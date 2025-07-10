@@ -5,7 +5,7 @@
 
 import { Graph } from "../../engine/graph";
 import { ValidationResult, LevelValidator, LevelAnswer } from "../types";
-import { LEVEL_1_CONFIG, LEVEL_1_PRIMARY_ANSWER } from "./config";
+import { LEVEL_1_PRIMARY_ANSWER } from "./config";
 
 export class Level1Validator implements LevelValidator {
   
@@ -29,7 +29,7 @@ export class Level1Validator implements LevelValidator {
     ];
   }
 
-  isUnlocked(completedLevels: number[]): boolean {
+  isUnlocked(): boolean {
     // Level 1 is always unlocked (it's the first level)
     return true;
   }

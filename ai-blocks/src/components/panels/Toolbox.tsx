@@ -6,11 +6,12 @@
 "use client";
 import { useUIStore } from "@/store/uiStore";
 import { getBlocksByCategory, initializeBlocks } from "@/engine/blocks/registry";
-import { useState, useEffect } from "react";
+import { Block } from "@/engine/blocks";
+import { useState, useEffect, useCallback } from "react";
 
 export default function Toolbox() {
   const { toolboxOpen, togglePanel } = useUIStore();
-  const [blocksByCategory, setBlocksByCategory] = useState<any>({});
+  const [blocksByCategory, setBlocksByCategory] = useState<Record<string, Block[]>>({});
   const [expandedCategories, setExpandedCategories] = useState<Set<string>>(
     new Set(['input', 'llm']) // Start with basic categories expanded
   );
@@ -31,7 +32,7 @@ export default function Toolbox() {
     e.stopPropagation();
   };
   
-  const handleMouseMove = (e: MouseEvent) => {
+  const handleMouseMove = useCallback((e: MouseEvent) => {
     if (!isDragging) return;
     
     const deltaX = e.clientX - dragStartX;
@@ -44,18 +45,18 @@ export default function Toolbox() {
     }
     
     setTogglePosition(newPosition);
-  };
+  }, [isDragging, dragStartX, dragStartPosition]);
   
-  const handleMouseUp = () => {
+  const handleMouseUp = useCallback(() => {
     if (!isDragging) return;
     setIsDragging(false);
     
     // Snap to nearest 10th position
     const snappedPosition = Math.round(togglePosition / 10) * 10;
     setTogglePosition(Math.max(10, Math.min(90, snappedPosition)));
-  };
+  }, [isDragging, togglePosition]);
   
-  const handleClick = (e: React.MouseEvent) => {
+  const handleClick = () => {
     // Only toggle panel if we didn't drag
     if (!hasDragged) {
       togglePanel('toolbox');
@@ -74,7 +75,7 @@ export default function Toolbox() {
         document.removeEventListener('mouseup', handleMouseUp);
       };
     }
-  }, [isDragging, dragStartX, dragStartPosition, togglePosition, hasDragged]);
+  }, [isDragging, handleMouseMove, handleMouseUp]);
 
   useEffect(() => {
     // Initialize blocks on component mount
@@ -148,10 +149,10 @@ export default function Toolbox() {
 
       <div className="space-y-3">
         {Object.entries(blocksByCategory).map(([category, blocks]) => {
-          if (!blocks || (blocks as any[]).length === 0) return null;
+          if (!blocks || blocks.length === 0) return null;
           
           const isExpanded = expandedCategories.has(category);
-          const categoryBlocks = blocks as any[];
+          const categoryBlocks = blocks;
 
           return (
             <div key={category} className="border border-gray-200 rounded-lg">
@@ -175,17 +176,17 @@ export default function Toolbox() {
                     <div
                       key={block.type}
                       className={`p-3 rounded border cursor-grab active:cursor-grabbing ${categoryColors[category]}`}
-                      draggable
+          draggable
                       onDragStart={(e) => {
-                        e.dataTransfer.setData(
-                          "application/block",
+            e.dataTransfer.setData(
+              "application/block",
                           JSON.stringify({
                             type: block.type,
                             label: block.label,
                           })
                         );
                       }}
-                    >
+        >
                       <div className="font-medium text-sm">
                         {block.label}
                       </div>
@@ -202,8 +203,8 @@ export default function Toolbox() {
                           {block.handles.outputs.length} out
                         </span>
                       </div>
-                    </div>
-                  ))}
+        </div>
+      ))}
                 </div>
               )}
             </div>

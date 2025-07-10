@@ -111,7 +111,7 @@ export const useGraphStore = create<GraphState>()(
         id: uuid(),
       };
       
-      const { nodes, edges } = get();
+      const { nodes } = get();
       const newNodes = [...nodes, newNode];
       
       get().pushToHistory();
