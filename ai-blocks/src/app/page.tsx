@@ -10,7 +10,7 @@ import { useRouter } from "next/navigation";
 export default function Home() {
   const router = useRouter();
 
-  const handleStartLevel = (levelId: number) => {
+  const handleStartLevel = () => {
     // Navigate to level 1
     router.push('/level1');
   };

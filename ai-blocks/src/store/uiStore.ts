@@ -82,7 +82,7 @@ const initialState = {
   debugMode: false,
 };
 
-export const useUIStore = create<UIState>((set, get) => ({
+export const useUIStore = create<UIState>((set) => ({
   ...initialState,
 
   togglePanel: (panel) => {

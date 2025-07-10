@@ -119,7 +119,7 @@ export default function SandboxGuidePanel() {
               </div>
               <div className="flex items-start space-x-2">
                 <span className="text-blue-600">•</span>
-                <span>Try breaking things - that's how you learn!</span>
+                <span>Try breaking things - that&apos;s how you learn!</span>
               </div>
             </div>
           </div>
