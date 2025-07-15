@@ -12,7 +12,7 @@ export interface LevelConfig {
   description: string;
   difficulty: 'easy' | 'medium' | 'hard';
   tags: string[];
-  category: 'tutorial' | 'challenge';
+  category: 'tutorial' | 'challenge' | 'sandbox';
   isAvailable: boolean;
   
   // Gameplay metrics
