@@ -4,14 +4,13 @@
  */
 
 "use client";
+// Remove unused imports at the top
 import { useRunStore } from "@/store/runStore";
 import { useUIStore } from "@/store/uiStore";
 import { useGraphStore } from "@/store/graphStore";
 import { graphRunner } from "@/engine/runner";
 import { useRouter } from "next/navigation";
-import { LevelDefinition } from "@/engine/evaluator";
 import { getLevelValidator } from "@/levels";
-
 // Import centralized configuration
 import { APP_CONFIG, ROUTES } from "@/config";
 import { THEME } from "@/config/theme";

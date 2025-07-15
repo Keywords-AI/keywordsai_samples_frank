@@ -4,8 +4,6 @@
  * Defines all available levels and their properties
  */
 
-import { BLOCK_CONFIGS } from './blocks';
-
 export interface LevelConfig {
   id: string;
   title: string;
@@ -38,8 +36,8 @@ export interface LevelConfig {
   
   // Starter configuration
   starterGraph?: {
-    nodes: any[];
-    edges: any[];
+    nodes: unknown[];
+    edges: unknown[];
   };
   
   // Hints and guidance
@@ -329,18 +327,15 @@ export function validateLevelCompletion(levelId: string, userGraph: any): {
   return { isComplete: false, score: 0, feedback: 'No valid solution found' };
 }
 
-function validateAnswer(userGraph: any, answer: LevelAnswer): {
+// Fix the validation function parameters
+function validateAnswer(_userGraph: unknown, _answer: LevelAnswer): {
   isComplete: boolean;
   score: number;
   feedback: string;
 } {
-  // This is a simplified validation - in a real implementation,
-  // you would check the graph structure against the answer requirements
-  
-  // For now, return a basic validation
   return {
     isComplete: false,
     score: 0,
     feedback: 'Validation not implemented yet'
   };
-} 
+}
