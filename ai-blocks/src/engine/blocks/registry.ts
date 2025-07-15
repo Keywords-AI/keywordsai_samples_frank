@@ -1,43 +1,47 @@
 // src/engine/blocks/registry.ts
 /**
- * Block registry - imports and registers all available block types
+ * Block registry - now uses the new factory system for more flexible block management
  * This file should be imported once at app startup to register all blocks
  */
 
 import { blockRegistry } from "./index";
-import { userInputBlock } from "./userInput";
-import { llmParseBlock } from "./llmParse";
-import { contextMergeBlock } from "./contextMerge"; // Essential - combines user input with context!
-import { contextVariableBlock } from "./contextVariable"; // Essential - provides current date/time context!  
-import { llmSuggestTimeBlock } from "./llmSuggestTime";
-import { googleCalendarGetBlock } from "./googleCalendarGet"; // Actually essential - need to check for conflicts!
-import { googleCalendarScheduleBlock } from "./googleCalendarSchedule";
-import { userOutputBlock } from "./userOutput";
-// import { dataFormatterBlock } from "./dataFormatter"; // Removed - redundant with LLM functionality
+import { BlockFactory } from "./factory";
+import { getAllBlocks } from "@/config/blocks";
 
 /**
- * Register all available blocks
+ * Register all available blocks using the new factory system
  * Call this function once at app startup
  */
 export function initializeBlocks(): void {
-  // Input blocks
-  blockRegistry.register(userInputBlock);
-  blockRegistry.register(contextVariableBlock); // Essential - provides current date/time context!
+  // Get all blocks from factory and register them
+  const blocks = BlockFactory.getAllBlocks();
+  blocks.forEach(block => {
+    blockRegistry.register(block);
+  });
+}
+
+/**
+ * Get blocks organized by category using the new factory system
+ */
+export function getBlocksCategorized(): Record<string, any[]> {
+  const blocks = BlockFactory.getAllBlocks();
+  const categories: Record<string, any[]> = {};
   
-  // Transform blocks
-  blockRegistry.register(contextMergeBlock); // Essential - combines user input with context!
-  // blockRegistry.register(dataFormatterBlock); // Removed - LLMs can format data
+  blocks.forEach(block => {
+    if (!categories[block.category]) {
+      categories[block.category] = [];
+    }
+    categories[block.category].push(block);
+  });
   
-  // LLM blocks
-  blockRegistry.register(llmParseBlock);
-  blockRegistry.register(llmSuggestTimeBlock);
-  
-  // Tool blocks
-  blockRegistry.register(googleCalendarGetBlock); // Essential - must check for conflicts!
-  blockRegistry.register(googleCalendarScheduleBlock);
-  
-  // Output blocks
-  blockRegistry.register(userOutputBlock);
+  return categories;
+}
+
+/**
+ * Get all blocks
+ */
+export function getAllBlocksFromRegistry(): any[] {
+  return BlockFactory.getAllBlocks();
 }
 
 /**

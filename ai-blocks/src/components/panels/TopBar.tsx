@@ -4,33 +4,17 @@
  */
 
 "use client";
+// Remove unused imports at the top
 import { useRunStore } from "@/store/runStore";
 import { useUIStore } from "@/store/uiStore";
 import { useGraphStore } from "@/store/graphStore";
 import { graphRunner } from "@/engine/runner";
 import { useRouter } from "next/navigation";
-
-import { LevelDefinition } from "@/engine/evaluator";
 import { getLevelValidator } from "@/levels";
-
-// Mock level for demonstration - in real app this would come from data/levels
-const mockLevel: LevelDefinition = {
-  id: "demo",
-  title: "Demo Level",
-  description: "Build a basic text processing workflow",
-  difficulty: "easy",
-  tags: ["basics", "text"],
-  targetTokens: 1000,
-  targetApiCalls: 3,
-  targetTime: 30,
-  observabilityTarget: 80,
-  tests: [],
-  starThresholds: {
-    oneStar: 60,
-    twoStar: 80,
-    threeStar: 95,
-  }
-};
+// Import centralized configuration
+import { APP_CONFIG, ROUTES } from "@/config";
+import { THEME } from "@/config/theme";
+import { UI_STATES } from "@/lib/constants";
 
 export default function TopBar() {
   const router = useRouter();
@@ -64,105 +48,112 @@ export default function TopBar() {
     clearGraph
   } = useGraphStore();
 
+  // Get current level config from centralized configuration
+  const getCurrentLevelConfig = () => {
+    // Default to level-1 if no current level is set
+    const levelId = currentLevel?.id || 'level-1';
+    return APP_CONFIG.levels[levelId as keyof typeof APP_CONFIG.levels] || APP_CONFIG.levels['level-1'];
+  };
+
+  const currentLevelConfig = getCurrentLevelConfig();
+
   const handleRun = async () => {
-         if (isRunning) {
-       graphRunner.stop();
-       return;
-     }
+    if (isRunning) {
+      graphRunner.stop();
+      return;
+    }
 
-     if (!isValid) {
-       alert(`Cannot run: ${validationErrors.join(', ')}`);
-       return;
-     }
+    if (!isValid) {
+      alert(`Cannot run: ${validationErrors.join(', ')}`);
+      return;
+    }
 
-     try {
+    try {
+      // Get current graph
+      const currentGraph = exportGraph();
       
-             // Get current graph
-       const currentGraph = exportGraph();
-       
-       // Get current level validator (defaulting to Level 1 for now)
-       const currentLevelId = 1; // TODO: Get from UI store
-       const validator = getLevelValidator(currentLevelId);
-       
-       if (!validator) {
-         console.error(`No validator found for level ${currentLevelId}`);
-         alert('❌ Level system error. Please refresh the page.');
-         return;
-       }
-       
-       console.log('Current graph:', currentGraph);
-       console.log('Graph nodes:', currentGraph.nodes.length);
-       console.log('Graph edges:', currentGraph.edges.length);
-       
-       // Debug: Show actual node types
-       console.log('Node types found:', currentGraph.nodes.map(n => ({
-         id: n.id,
-         type: n.type,
-         dataType: n.data?.type,
-         data: n.data
-       })));
-       
-       // Validate the pipeline first (this is the game logic)
-       const validationResult = validator.validate(currentGraph);
-       
-       // Show validation feedback
-       console.log('Validation Result:', validationResult);
-       
-       if (validationResult.score >= 60) {
-         // Achieved at least 1 star! Run the actual execution
-         startRun();
-         const trace = await graphRunner.run(currentGraph, {
-           onProgress: updateProgress,
-           onResult: addResult,
-           timeout: 30000,
-           continueOnError: false,
-         });
-         finishRun(trace);
-         
-         // Show success modal with execution trace
-         setShowSuccessModal(true, validationResult);
-         
-         // Modal shows success with detailed traces
-         console.log('Level completed with score:', validationResult.score, validationResult);
-       } else {
-         // Pipeline needs work, show helpful feedback
-         const feedback = [
-           validationResult.message,
-           '',
-           'What you got right:',
-           ...validationResult.correctAspects,
-           '',
-           'What needs fixing:',
-           ...validationResult.issues,
-           '',
-           'Hints:',
-           ...validationResult.hints
-         ].join('\n');
-         
-         alert(`Score: ${validationResult.score}/100\n\n${feedback}`);
-       }
-         } catch (error) {
-       console.error('Execution failed:', error);
-       console.error('Error stack:', error instanceof Error ? error.stack : 'No stack trace');
-       console.log('Current graph at error:', exportGraph());
-       
-       finishRun({
-         results: [],
-         totalTokens: 0,
-         totalApiCalls: 0,
-         totalDuration: 0,
-         success: false,
-         error: error instanceof Error ? error.message : 'Unknown error',
-       });
-       
-       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-       alert(`❌ Error Details:\n${errorMessage}\n\nCheck browser console (F12) for more info.\n\nCommon fixes:\n• Add blocks to canvas\n• Connect blocks with lines\n• Make sure you have User Input → LLM Parse → etc.`);
-     }
+      // Get current level validator
+      const currentLevelId = parseInt(currentLevelConfig.id.replace('level-', '')) || 1;
+      const validator = getLevelValidator(currentLevelId);
+      
+      if (!validator) {
+        console.error(`No validator found for level ${currentLevelId}`);
+        alert('❌ Level system error. Please refresh the page.');
+        return;
+      }
+      
+      console.log('Current graph:', currentGraph);
+      console.log('Graph nodes:', currentGraph.nodes.length);
+      console.log('Graph edges:', currentGraph.edges.length);
+      
+      // Debug: Show actual node types
+      console.log('Node types found:', currentGraph.nodes.map(n => ({
+        id: n.id,
+        type: n.type,
+        dataType: n.data?.type,
+        data: n.data
+      })));
+      
+      // Validate the pipeline first (this is the game logic)
+      const validationResult = validator.validate(currentGraph);
+      
+      // Show validation feedback
+      console.log('Validation Result:', validationResult);
+      
+      if (validationResult.score >= currentLevelConfig.starThresholds.oneStar) {
+        // Achieved at least 1 star! Run the actual execution
+        startRun();
+        const trace = await graphRunner.run(currentGraph, {
+          onProgress: updateProgress,
+          onResult: addResult,
+          timeout: 30000,
+          continueOnError: false,
+        });
+        finishRun(trace);
+        
+        // Show success modal with execution trace
+        setShowSuccessModal(true, validationResult);
+        
+        // Modal shows success with detailed traces
+        console.log('Level completed with score:', validationResult.score, validationResult);
+      } else {
+        // Pipeline needs work, show helpful feedback
+        const feedback = [
+          validationResult.message,
+          '',
+          'What you got right:',
+          ...validationResult.correctAspects,
+          '',
+          'What needs fixing:',
+          ...validationResult.issues,
+          '',
+          'Hints:',
+          ...validationResult.hints
+        ].join('\n');
+        
+        alert(`Score: ${validationResult.score}/100\n\n${feedback}`);
+      }
+    } catch (error) {
+      console.error('Execution failed:', error);
+      console.error('Error stack:', error instanceof Error ? error.stack : 'No stack trace');
+      console.log('Current graph at error:', exportGraph());
+      
+      finishRun({
+        results: [],
+        totalTokens: 0,
+        totalApiCalls: 0,
+        totalDuration: 0,
+        success: false,
+        error: error instanceof Error ? error.message : 'Unknown error',
+      });
+      
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      alert(`❌ Error Details:\n${errorMessage}\n\nCheck browser console (F12) for more info.\n\nCommon fixes:\n• Add blocks to canvas\n• Connect blocks with lines\n• Make sure you have User Input → LLM Parse → etc.`);
+    }
   };
 
   const getStarDisplay = (score: number) => {
-    // Use mock level thresholds for now
-    const thresholds = mockLevel.starThresholds;
+    const thresholds = currentLevelConfig.starThresholds;
     if (score >= thresholds.threeStar) return '⭐⭐⭐';
     if (score >= thresholds.twoStar) return '⭐⭐';
     if (score >= thresholds.oneStar) return '⭐';
@@ -170,19 +161,19 @@ export default function TopBar() {
   };
 
   return (
-    <header className="h-16 border-b border-gray-200 bg-white flex items-center justify-between px-4">
+    <header className={`${APP_CONFIG.ui.layout.topBarHeight} ${THEME.colors.border.default} bg-white flex items-center justify-between px-4`}>
       {/* Left side - Level info and run controls */}
       <div className="flex items-center space-x-4">
         {/* Level info */}
         <div 
-          className="cursor-pointer hover:bg-gray-100 p-2 rounded"
+          className={`cursor-pointer ${THEME.categories.input.hover} p-2 ${THEME.borderRadius.sm}`}
           onClick={() => showModal('level')}
         >
-          <h1 className="font-semibold text-gray-900">
-            {(currentLevel || mockLevel).title}
+          <h1 className={`${THEME.typography.weight.semibold} ${THEME.colors.text.primary}`}>
+            {currentLevelConfig.title}
           </h1>
-          <p className="text-xs text-gray-600">
-            {(currentLevel || mockLevel).difficulty} • {(currentLevel || mockLevel).tags.join(', ')}
+          <p className={`${THEME.typography.body.xs} ${THEME.colors.text.secondary}`}>
+            {currentLevelConfig.difficulty} • {currentLevelConfig.tags.join(', ')}
           </p>
         </div>
 
@@ -193,12 +184,12 @@ export default function TopBar() {
           <button
             onClick={handleRun}
             disabled={!isValid && !isRunning}
-            className={`px-4 py-2 rounded font-medium ${
+            className={`${THEME.components.button.base} ${
               isRunning
-                ? 'bg-red-500 text-white hover:bg-red-600'
+                ? THEME.components.button.danger
                 : isValid
-                ? 'bg-green-500 text-white hover:bg-green-600'
-                : 'bg-gray-600 text-gray-400 cursor-not-allowed'
+                ? THEME.components.button.success
+                : THEME.components.button.disabled
             }`}
           >
             {isRunning ? '⏹ Stop' : '▶ Run'}
@@ -210,7 +201,7 @@ export default function TopBar() {
               clearGraph(); // Clear the canvas
             }}
             disabled={isRunning}
-            className="px-3 py-2 text-gray-600 hover:text-gray-800 disabled:opacity-50"
+            className={`px-3 py-2 ${THEME.colors.text.secondary} hover:text-gray-800 disabled:opacity-50`}
           >
             🔄 Reset
           </button>
@@ -220,7 +211,7 @@ export default function TopBar() {
         {isRunning && (
           <div className="w-32 bg-gray-200 rounded-full h-2">
             <div 
-              className="bg-blue-500 h-2 rounded-full transition-all duration-300"
+              className={`${THEME.colors.primary[500]} h-2 rounded-full ${THEME.transitions.default}`}
               style={{ width: `${progress}%` }}
             />
           </div>
@@ -228,7 +219,7 @@ export default function TopBar() {
 
         {/* Validation status */}
         {!isValid && (
-          <div className="text-red-500 text-sm">
+          <div className={`${THEME.colors.error.text} ${THEME.typography.body.small}`}>
             ⚠️ {validationErrors[0]}
           </div>
         )}
@@ -237,19 +228,19 @@ export default function TopBar() {
       {/* Center - Results display */}
       {evaluation && (
         <div className="flex items-center space-x-4">
-          <div className={`px-3 py-1 rounded text-sm font-medium ${
+          <div className={`px-3 py-1 ${THEME.borderRadius.sm} ${THEME.typography.body.small} ${THEME.typography.weight.medium} ${
             evaluation.passed 
-              ? 'bg-green-100 text-green-800' 
-              : 'bg-red-100 text-red-800'
+              ? `${THEME.colors.success[100]} ${THEME.colors.success.text}` 
+              : `${THEME.colors.error[100]} ${THEME.colors.error.text}`
           }`}>
             {evaluation.passed ? '✅ Passed' : '❌ Failed'}
           </div>
 
-          <div className="text-sm text-gray-600">
+          <div className={`${THEME.typography.body.small} ${THEME.colors.text.secondary}`}>
             Score: {evaluation.score}/100 {getStarDisplay(evaluation.score)}
           </div>
 
-          <div className="text-xs text-gray-500">
+          <div className={`${THEME.typography.body.xs} ${THEME.colors.text.muted}`}>
             {evaluation.tests.filter(t => t.passed).length}/{evaluation.tests.length} tests • 
             {evaluation.budgets.filter(b => !b.exceeded).length}/{evaluation.budgets.length} budgets
           </div>
@@ -262,7 +253,7 @@ export default function TopBar() {
         <button
           onClick={undo}
           disabled={!canUndo || isRunning}
-          className="p-2 text-gray-600 hover:text-gray-800 disabled:opacity-50"
+          className={`p-2 ${THEME.colors.text.secondary} hover:text-gray-800 disabled:opacity-50`}
           title="Undo"
         >
           ↶
@@ -271,7 +262,7 @@ export default function TopBar() {
         <button
           onClick={redo}
           disabled={!canRedo || isRunning}
-          className="p-2 text-gray-600 hover:text-gray-800 disabled:opacity-50"
+          className={`p-2 ${THEME.colors.text.secondary} hover:text-gray-800 disabled:opacity-50`}
           title="Redo"
         >
           ↷
@@ -282,14 +273,14 @@ export default function TopBar() {
         {/* Panel toggles */}
         <button
           onClick={() => togglePanel('toolbox')}
-          className="px-3 py-1 text-sm bg-gray-100 text-gray-600 rounded hover:bg-gray-200"
+          className={`px-3 py-1 ${THEME.typography.body.small} ${THEME.components.button.secondary}`}
         >
           Toolbox
         </button>
         
         <button
           onClick={() => togglePanel('traceConsole')}
-          className="px-3 py-1 text-sm bg-gray-100 text-gray-600 rounded hover:bg-gray-200"
+          className={`px-3 py-1 ${THEME.typography.body.small} ${THEME.components.button.secondary}`}
         >
           Console
         </button>
@@ -299,7 +290,7 @@ export default function TopBar() {
         {/* Settings */}
         <button
           onClick={() => showModal('settings')}
-          className="p-2 text-gray-600 hover:text-gray-800"
+          className={`p-2 ${THEME.colors.text.secondary} hover:text-gray-800`}
           title="Settings"
         >
           ⚙️
@@ -309,15 +300,13 @@ export default function TopBar() {
 
         {/* Back to Menu */}
         <button
-          onClick={() => router.push('/')}
-          className="px-3 py-1 text-sm bg-blue-100 text-blue-600 rounded hover:bg-blue-200"
+          onClick={() => router.push(ROUTES.home)}
+          className={`px-3 py-1 ${THEME.typography.body.small} ${THEME.colors.primary[100]} text-blue-600 ${THEME.borderRadius.sm} hover:bg-blue-200`}
           title="Back to Menu"
         >
           🏠 Menu
         </button>
       </div>
-
-      {/* Success Modal - Removed to avoid duplicate success screens */}
     </header>
   );
-} 
+}
