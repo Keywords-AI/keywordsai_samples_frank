@@ -5,7 +5,8 @@
 
 "use client";
 import { useUIStore } from "@/store/uiStore";
-import { getBlocksByCategory, initializeBlocks } from "@/engine/blocks/registry";
+import { getBlocksCategorized, initializeBlocks } from "@/engine/blocks/registry";
+import { BLOCK_CATEGORIES } from "@/config/blocks";
 import { Block } from "@/engine/blocks";
 import { useState, useEffect, useCallback } from "react";
 
@@ -80,7 +81,7 @@ export default function Toolbox() {
   useEffect(() => {
     // Initialize blocks on component mount
     initializeBlocks();
-    setBlocksByCategory(getBlocksByCategory());
+    setBlocksByCategory(getBlocksCategorized());
   }, []);
 
   if (!toolboxOpen) {
@@ -97,23 +98,13 @@ export default function Toolbox() {
     setExpandedCategories(newExpanded);
   };
 
-  const categoryIcons: Record<string, string> = {
-    input: '📥',
-    transform: '🔄',
-    llm: '🤖',
-    tool: '🔧',
-    output: '📤',
-    control: '🎛️',
-  };
+  const categoryIcons: Record<string, string> = Object.fromEntries(
+    Object.entries(BLOCK_CATEGORIES).map(([key, category]) => [key, category.icon])
+  );
 
-  const categoryNames: Record<string, string> = {
-    input: 'Input',
-    transform: 'Transform',
-    llm: 'AI Models',
-    tool: 'Tools',
-    output: 'Output',
-    control: 'Control',
-  };
+  const categoryNames: Record<string, string> = Object.fromEntries(
+    Object.entries(BLOCK_CATEGORIES).map(([key, category]) => [key, category.name])
+  );
 
   const categoryColors: Record<string, string> = {
     input: 'bg-blue-50 border-blue-200 text-blue-800 hover:bg-blue-100',
