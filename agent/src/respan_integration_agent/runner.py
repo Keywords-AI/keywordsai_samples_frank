@@ -16,9 +16,11 @@ from .sandbox import checkout
 
 @dataclass
 class SessionResult:
-    pr: github.OpenedPR
     summary: str
     trace_id: str | None
+    changed_files: list[str]
+    diff: str
+    pr: github.OpenedPR | None  # None in v0a (no token → no PR, just the diff)
 
 
 def _preflight(req: OnboardingRequest) -> None:
@@ -33,14 +35,33 @@ def _preflight(req: OnboardingRequest) -> None:
         pass
 
 
-def run_session(req: OnboardingRequest, *, github_token: str) -> SessionResult:
+def run_session(
+    req: OnboardingRequest, *, respan_api_key: str, github_token: str | None = None
+) -> SessionResult:
     _preflight(req)
     branch = f"respan/onboard-{req.product.value}"
+    title = f"Add Respan {req.product.value} instrumentation"
     with checkout(req.repo_url, req.base_branch, token=github_token) as workdir:
-        result = run_agent(workdir, req)
-        if not github.changed_files(workdir):
-            raise RuntimeError("agent produced no changes — nothing to open a PR for")
-        title = f"Add Respan {req.product.value} instrumentation"
-        github.commit_branch(workdir, branch, title)
-        pr = github.open_pr(workdir, branch, title, result.summary, github_token)
-    return SessionResult(pr=pr, summary=result.summary, trace_id=result.trace_id)
+        result = run_agent(workdir, req, respan_api_key=respan_api_key)
+        if not result.changed_files:
+            raise RuntimeError("agent produced no changes")
+        diff = _git_diff(workdir)
+        pr = None
+        if github_token:  # v0b: deliver as a PR; v0a: just the diff
+            github.commit_branch(workdir, branch, title)
+            pr = github.open_pr(workdir, branch, title, result.summary, github_token)
+    return SessionResult(
+        summary=result.summary,
+        trace_id=result.trace_id,
+        changed_files=result.changed_files,
+        diff=diff,
+        pr=pr,
+    )
+
+
+def _git_diff(workdir) -> str:
+    import subprocess
+
+    return subprocess.run(
+        ["git", "-C", str(workdir), "diff"], capture_output=True, text=True
+    ).stdout

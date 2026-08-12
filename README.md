@@ -26,9 +26,18 @@ Install GitHub App → setup.respan.ai → pick repo → questionnaire → Submi
 
 No GitHub App yet: pass a repo URL + token + config JSON and get a PR.
 
+The **only secret needed is `RESPAN_API_KEY`** — the gateway routes the model (no Anthropic
+key), and the same key sends the dogfood trace.
+
 ```bash
 cd agent && pip install -e .
-respan-integration-agent run --repo https://github.com/acme/app --token "$GH_TOKEN" --config config.json
+export RESPAN_API_KEY=...
+
+# v0a — integrate + show the diff + emit a trace (no GitHub needed):
+respan-integration-agent run --repo https://github.com/acme/app --config config.json
+
+# v0b — also open a PR:
+respan-integration-agent run --repo ... --config config.json --token "$GH_TOKEN"
 ```
 
 `config.json` is an `OnboardingRequest` ([config.py](agent/src/respan_integration_agent/config.py)):
@@ -39,14 +48,15 @@ respan-integration-agent run --repo https://github.com/acme/app --token "$GH_TOK
 
 ### v0 checklist
 - [x] Config contract (questionnaire as typed models)
-- [x] Session skeleton: preflight → clone → agent → commit → PR
-- [ ] Wire `claude_agent_sdk.query` with the `/respan` skill + `ClaudeAgentSDKInstrumentor` (`agent.py`)
-- [ ] Route the model through the gateway (`ANTHROPIC_BASE_URL`) — **needs the gateway's Anthropic-compatible endpoint**; until then cap turns/tokens in `runner._preflight`
-- [ ] Gateway preflight: verify credits/BYOK before spending a token (`runner._preflight`)
-- [ ] `open_pr`: push branch + create PR via REST (`github.py`)
-- [ ] Smoke run against a throwaway repo → real PR + real trace
+- [x] Session skeleton: preflight → clone → agent → diff/PR
+- [x] Wire `claude_agent_sdk.query` with the `/respan` skill + `ClaudeAgentSDKInstrumentor` (`agent.py`)
+- [x] Route the model through the gateway — [already supported](https://respan.ai/docs/integrations/gateway/claude-agent-sdk); `RESPAN_API_KEY` only, `max_turns` caps cost
+- [ ] **v0a smoke run** — throwaway repo → real diff + real trace *(needs only `RESPAN_API_KEY`)*
+- [ ] Gateway preflight: verify credits/BYOK before spending a turn (`runner._preflight`)
+- [ ] `open_pr`: push branch + create PR via REST (`github.py`) — v0b
+- [ ] Provision the `/respan` skill in the sandbox image (v1)
 
-**Success = a real PR opened by the agent + the trace of that very session.**
+**v0a success = the agent integrates Respan + emits its own trace.  v0b adds the PR.**
 
 ## Dogfood hooks
 - **Tracing:** the agent loop is instrumented (`respan-instrumentation-claude-agent-sdk`).

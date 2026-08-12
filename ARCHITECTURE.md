@@ -33,16 +33,13 @@ laptop" problem disappears, and the LLM key never leaves the server.
 
 ## Credential / cost control
 
-- The model key lives **only** in the ephemeral sandbox env.
-- Every agent LLM call goes through the **Respan gateway** with a **per-user budget** →
-  users never hold the key and cannot abuse LLM cost. (This is also the gateway dogfood.)
+- **Only `RESPAN_API_KEY` is needed** — the gateway already supports the Claude Agent SDK
+  ([docs](https://respan.ai/docs/integrations/gateway/claude-agent-sdk)) via an
+  Anthropic-compatible endpoint at `{base_url}/anthropic/`. No separate Anthropic key; the
+  gateway handles provider auth. So the gateway dogfood + cost control are built in from day one.
+- Every agent LLM call goes through the gateway with the account's **budget** → users can't
+  abuse LLM cost. The orchestrator also caps `max_turns` per session as a second guard.
 - The sandbox is torn down after each session; GitHub access is **PR-only** (no force-push).
-
-### Dependency to resolve
-The gateway is OpenAI-compatible (`/chat/completions`); the Claude Agent SDK speaks
-Anthropic's Messages API. To route the agent through the gateway, the gateway needs an
-**Anthropic-compatible endpoint** (`ANTHROPIC_BASE_URL`). Until then, v0 caps cost at the
-**orchestrator** (max turns/tokens per session) and adds gateway-Anthropic as a fast-follow.
 
 ## The questionnaire (config contract)
 
