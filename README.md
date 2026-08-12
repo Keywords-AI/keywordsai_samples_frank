@@ -1,36 +1,54 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Respan Agent
 
-## Getting Started
+A first-party onboarding agent that integrates **Respan** into a repo and opens a PR —
+and **dogfoods** Respan's own stack: it runs on the **gateway** (cost control), is
+**traced** (every session is a trace), and is scored by **evals**.
 
-First, run the development server:
+Form factor: a GitHub App (proactive, PR-producing — like Snyk/Dependabot, not CodeRabbit).
+The full design is in **[ARCHITECTURE.md](ARCHITECTURE.md)**.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+```
+Install GitHub App → setup.respan.ai → pick repo → questionnaire → Submit
+   → sandbox: clone → agent runs the /respan skill (Sonnet via gateway, traced)
+   → commit branch → open PR → "your first trace →"
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Layout
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+| Path | What | Status |
+|------|------|--------|
+| `agent/` | Session runner + Claude Agent SDK loop + PR opener + CLI | **v0 (here now)** |
+| `web/` | `setup.respan.ai` — auth, credits/BYOK, questionnaire, live progress | v1 |
+| `github-app/` | App manifest + webhook handler | v1 |
+| `evals/` | Sample-repo dataset + scorers (Respan experiments) | v2 |
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## v0 — prove the loop (this milestone)
 
-## Learn More
+No GitHub App yet: pass a repo URL + token + config JSON and get a PR.
 
-To learn more about Next.js, take a look at the following resources:
+```bash
+cd agent && pip install -e .
+respan-integration-agent run --repo https://github.com/acme/app --token "$GH_TOKEN" --config config.json
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+`config.json` is an `OnboardingRequest` ([config.py](agent/src/respan_integration_agent/config.py)):
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+```json
+{ "repo_url": "https://github.com/acme/app", "product": "tracing", "tracing": { "mode": "auto" } }
+```
 
-## Deploy on Vercel
+### v0 checklist
+- [x] Config contract (questionnaire as typed models)
+- [x] Session skeleton: preflight → clone → agent → commit → PR
+- [ ] Wire `claude_agent_sdk.query` with the `/respan` skill + `ClaudeAgentSDKInstrumentor` (`agent.py`)
+- [ ] Route the model through the gateway (`ANTHROPIC_BASE_URL`) — **needs the gateway's Anthropic-compatible endpoint**; until then cap turns/tokens in `runner._preflight`
+- [ ] Gateway preflight: verify credits/BYOK before spending a token (`runner._preflight`)
+- [ ] `open_pr`: push branch + create PR via REST (`github.py`)
+- [ ] Smoke run against a throwaway repo → real PR + real trace
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+**Success = a real PR opened by the agent + the trace of that very session.**
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Dogfood hooks
+- **Tracing:** the agent loop is instrumented (`respan-instrumentation-claude-agent-sdk`).
+- **Gateway:** the agent's LLM calls route through the gateway with a per-user budget.
+- **Evals:** `evals/` scores onboarding outcomes over a dataset of sample repos.
