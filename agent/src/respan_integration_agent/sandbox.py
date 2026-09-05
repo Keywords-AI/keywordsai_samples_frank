@@ -6,28 +6,27 @@ v1: the same interface, backed by a Railway container that is torn down after th
 
 from __future__ import annotations
 
-import subprocess
 import tempfile
 from contextlib import contextmanager
 from pathlib import Path
 from typing import Iterator
+from urllib.parse import urlsplit
 
-
-def _authed_url(repo_url: str, token: str | None) -> str:
-    """Embed a token for cloning a private repo (never logged/committed)."""
-    if not token or "@" in repo_url or not repo_url.startswith("https://"):
-        return repo_url
-    return repo_url.replace("https://", f"https://x-access-token:{token}@", 1)
+from .github import GitHubDeliveryError, authenticated_git, parse_repository, validate_branch
 
 
 @contextmanager
 def checkout(repo_url: str, base_branch: str = "main", token: str | None = None) -> Iterator[Path]:
     """Clone `repo_url`@`base_branch` into a temp dir; clean up on exit."""
+    validate_branch(base_branch)
+    if token is not None:
+        repo_url = parse_repository(repo_url).url
+    elif urlsplit(repo_url).username or urlsplit(repo_url).password:
+        raise GitHubDeliveryError("Clone URLs must not contain credentials.")
     with tempfile.TemporaryDirectory(prefix="respan-integration-agent-") as tmp:
         workdir = Path(tmp) / "repo"
-        subprocess.run(
-            ["git", "clone", "--depth", "1", "--branch", base_branch,
-             _authed_url(repo_url, token), str(workdir)],
-            check=True, capture_output=True, text=True,
+        authenticated_git(
+            Path(tmp), "clone", "--depth", "1", "--branch", base_branch,
+            "--", repo_url, str(workdir), token=token,
         )
         yield workdir

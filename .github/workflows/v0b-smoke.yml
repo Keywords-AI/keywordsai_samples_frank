@@ -1,0 +1,76 @@
+name: v0b smoke
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [v0-checklist-implementation]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: v0b-smoke-${{ github.repository }}
+  cancel-in-progress: false
+
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+      - name: Install the verified controller versions
+        run: >-
+          python -m pip install './agent[dev]'
+          'claude-agent-sdk==0.2.149' 'respan-ai==4.2.3' 'respan-tracing==2.19.3' 'respan-sdk==2.7.6'
+          'respan-instrumentation-claude-agent-sdk==0.2.1'
+          'opentelemetry-claude-agent-sdk==0.1.4'
+      - name: Run local regression tests
+        run: python -m unittest discover -s agent/tests -v
+      - name: Check dependency compatibility
+        run: python -m pip check
+
+  live:
+    needs: tests
+    if: github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.message, '[v0b-smoke]')
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+      - name: Install the verified controller versions without credentials
+        run: >-
+          python -m pip install ./agent
+          'claude-agent-sdk==0.2.149' 'respan-ai==4.2.3' 'respan-tracing==2.19.3' 'respan-sdk==2.7.6'
+          'respan-instrumentation-claude-agent-sdk==0.2.1'
+          'opentelemetry-claude-agent-sdk==0.1.4'
+      - name: Generate, verify, and clean up one fixture PR
+        env:
+          RESPAN_API_KEY: ${{ secrets.RESPAN_API_KEY }}
+          V0B_GITHUB_TOKEN: ${{ github.token }}
+          RESPAN_BASE_URL: https://api.respan.ai/api
+          V0B_REPOSITORY: ${{ github.repository }}
+          V0B_OUTPUT: ${{ runner.temp }}/v0b-evidence
+        run: python scripts/verify_v0b.py --repo "$V0B_REPOSITORY" --output "$V0B_OUTPUT"
+      - name: Upload only sanitized verification evidence
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: v0b-evidence-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            ${{ runner.temp }}/v0b-evidence/receipt.json
+            ${{ runner.temp }}/v0b-evidence/verification.json
+            ${{ runner.temp }}/v0b-evidence/generated.patch
+          if-no-files-found: warn
+          retention-days: 7

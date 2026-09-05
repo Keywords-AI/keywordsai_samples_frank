@@ -59,6 +59,7 @@ def provision_respan_skill(source: Path | None = None) -> Iterator[ProvisionedSk
     selected = validate_skill_source(source)
     with tempfile.TemporaryDirectory(prefix="respan-agent-skill-") as temp:
         config_dir = Path(temp).resolve()
+        (config_dir / "home" / ".config").mkdir(parents=True)
         skill_dir = config_dir / "skills" / "respan"
         shutil.copytree(selected, skill_dir)
         validate_skill_source(skill_dir)

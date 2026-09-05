@@ -105,6 +105,7 @@ class SetupPipelineTests(unittest.TestCase):
 
     def test_failed_finalization_keeps_reviewable_diff_and_blocks_pr(self):
         failure = toolchain.ToolchainError("LOCK_FINALIZATION_FAILED", "fixture resolution failure")
+        self.request.repo_url = "https://github.com/fixture-owner/setup-fixture"
         with patch.object(runner, "checkout", self.checkout), \
                 patch.object(runner, "run_agent", side_effect=self.model_edit), \
                 patch.object(runner, "finalize_lockfiles", side_effect=failure), \

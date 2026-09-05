@@ -15,7 +15,6 @@ from __future__ import annotations
 import asyncio
 import base64
 import os
-import subprocess
 from contextlib import aclosing
 from dataclasses import dataclass
 from pathlib import Path
@@ -212,6 +211,8 @@ async def _run(
     from claude_agent_sdk import ClaudeAgentOptions, ResultMessage
 
     config_dir = skill.config_dir if skill else _claude_config_directory()
+    from .github import capture_checkout_identity, verify_checkout_identity
+    identity = capture_checkout_identity(workdir) if (workdir / ".git").exists() else None
     options = ClaudeAgentOptions(
         model=limits.model,
         max_turns=limits.max_turns,
@@ -220,16 +221,11 @@ async def _run(
         add_dirs=[str(config_dir / "skills" / "respan")],
         tools=["Skill", "Read", "Glob", "Grep", "Edit", "Write", "Bash"],
         permission_mode="acceptEdits",  # apply edits without prompting
-        env={
-            "CLAUDE_CONFIG_DIR": str(config_dir),
-            # Route the model through the Respan gateway — only the Respan key is needed.
-            "ANTHROPIC_API_KEY": respan_api_key,
-            "ANTHROPIC_AUTH_TOKEN": respan_api_key,
-            "ANTHROPIC_BASE_URL": f"{RESPAN_BASE_URL}/anthropic/",
-        },
+        env=_controller_environment(workdir, config_dir, respan_api_key),
     )
 
     summary = ""
+    trace_id = None
     terminal_error = None
     try:
         async with asyncio.timeout(limits.timeout_seconds):
@@ -239,6 +235,8 @@ async def _run(
             )) as messages:
                 async for message in messages:
                     if isinstance(message, ResultMessage):
+                        # Capture while the instrumented iterator's span is still active.
+                        trace_id = _current_trace_id() or trace_id
                         if message.is_error:
                             terminal_error = _result_error(message, respan_api_key)
                         elif message.result:
@@ -251,19 +249,40 @@ async def _run(
     if terminal_error:
         raise RuntimeError(terminal_error)
 
-    trace_id = None
-    try:
-        from respan import get_client
-
-        trace_id = get_client().get_current_trace_id()
-    except Exception:
-        pass  # the trace still lands; we just couldn't grab the id inline
-
+    if identity:
+        verify_checkout_identity(workdir, identity)
     return AgentResult(
         summary=summary or "Applied Respan integration.",
         changed_files=_git_changed(workdir),
         trace_id=trace_id,
     )
+
+
+def _controller_environment(workdir: Path, config_dir: Path, key: str) -> dict[str, str]:
+    """Override SDK-inherited credentials; GitHub publishing stays in the runner."""
+    allowed = {"PATH", "LANG", "LC_ALL", "TERM", "TMPDIR", "TMP", "TEMP",
+               "SYSTEMROOT", "WINDIR", "COMSPEC", "PATHEXT"}
+    env = {name: value if name in allowed else "" for name, value in os.environ.items()}
+    private_home = config_dir / "home"
+    env.update({
+        "HOME": str(private_home), "XDG_CONFIG_HOME": str(private_home / ".config"),
+        "NETRC": os.devnull, "CLAUDE_CONFIG_DIR": str(config_dir),
+        "GIT_CONFIG_GLOBAL": os.devnull, "GIT_CONFIG_NOSYSTEM": "1", "GIT_CONFIG_COUNT": "0",
+        "GIT_DIR": str(workdir / ".git"), "GIT_WORK_TREE": str(workdir),
+        "GIT_INDEX_FILE": str(workdir / ".git" / "index"), "GIT_TERMINAL_PROMPT": "0",
+        "ANTHROPIC_API_KEY": key, "ANTHROPIC_AUTH_TOKEN": key,
+        "ANTHROPIC_BASE_URL": f"{RESPAN_BASE_URL}/anthropic/",
+    })
+    return env
+
+
+def _current_trace_id() -> str | None:
+    # Trace capture is best-effort; publishing can still return the exact PR identity.
+    try:
+        from respan import get_client
+        return get_client().get_current_trace_id()
+    except Exception:
+        return None
 
 
 def _result_error(message, respan_api_key: str) -> str:
@@ -288,11 +307,8 @@ def _result_error(message, respan_api_key: str) -> str:
 
 
 def _git_changed(workdir: Path) -> list[str]:
-    out = subprocess.run(
-        ["git", "status", "--porcelain=v1", "-z", "--untracked-files=all", "--no-renames"],
-        cwd=workdir, capture_output=True, text=True, check=True,
-    ).stdout
-    return [record[3:] for record in out.split("\0") if record]
+    from .github import changed_files
+    return changed_files(workdir)
 
 
 # The public run_agent path provisions the bundled skill into a private configuration.
