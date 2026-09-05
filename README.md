@@ -70,7 +70,7 @@ diff and any known branch/commit identity. It never updates the base or an exist
 - [x] Route the model through the gateway — [already supported](https://respan.ai/docs/integrations/gateway/claude-agent-sdk); `RESPAN_API_KEY` only; turn/spending limits are optional
 - [ ] **v0a smoke run** — throwaway repo → real diff + real trace *(needs only `RESPAN_API_KEY`)*
 - [ ] Gateway preflight: verify credits/BYOK before spending a turn (`runner._preflight`)
-- [ ] `open_pr`: push branch + create a draft PR via REST (`github.py`) — v0b live verification pending
+- [x] `open_pr`: push branch + create a draft PR via REST (`github.py`) — [v0b live delivery verified](https://github.com/Nightingalelyy/respan-integration-agent/actions/runs/33973466823)
 - [x] Bundle and provision the `/respan` skill for local v0a runs
 - [ ] Provision the `/respan` skill in the sandbox image (v1)
 
@@ -84,7 +84,8 @@ outstanding, so the smoke checklist item stays open. Follow the
 The [v0b smoke workflow](.github/workflows/v0b-smoke.yml) runs local regression tests and
 an explicitly requested live check (manual dispatch, or a `[v0b-smoke]` commit on
 `v0-checklist-implementation`). The live job needs the repository's `RESPAN_API_KEY` secret
-and Actions permission to create PRs; it uses the built-in GitHub token. It verifies and
+and GitHub's combined Actions permission to create and approve PRs; it uses the built-in
+GitHub token, without approving reviews. It verifies and
 closes one temporary fixture PR, removes its two owned branches, and saves sanitized evidence.
 
 ## Dogfood hooks
