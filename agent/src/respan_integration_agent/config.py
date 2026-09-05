@@ -12,7 +12,20 @@ from __future__ import annotations
 from enum import Enum
 from typing import Optional
 
-from pydantic import BaseModel, Field, model_validator
+from pydantic import BaseModel, ConfigDict, Field, model_validator
+
+
+class ControllerConfig(BaseModel):
+    """Controller model, optional operator guards, and a hang timeout."""
+
+    model_config = ConfigDict(extra="forbid", validate_assignment=True)
+    model: str = Field(
+        default="claude-sonnet-5",
+        pattern=r"^(?:haiku|sonnet|opus|claude-[A-Za-z0-9._:-]+)$",
+    )
+    max_turns: int | None = Field(default=None, gt=0, strict=True)
+    max_budget_usd: float | None = Field(default=None, gt=0, allow_inf_nan=False, strict=True)
+    timeout_seconds: float = Field(default=600, gt=0, allow_inf_nan=False, strict=True)
 
 
 class Product(str, Enum):
@@ -74,6 +87,7 @@ class OnboardingRequest(BaseModel):
     product: Product
     tracing: Optional[TracingConfig] = None
     gateway: Optional[GatewayConfig] = None
+    controller: ControllerConfig = Field(default_factory=ControllerConfig)
 
     @model_validator(mode="after")
     def _require_matching_sections(self) -> "OnboardingRequest":
